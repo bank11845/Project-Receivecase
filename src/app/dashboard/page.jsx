@@ -102,7 +102,7 @@ const DashboardPage = () => {
 
       if (result.isConfirmed) {
         // ถ้าผู้ใช้ยืนยันที่จะลบ
-        const response = await fetch(`http://localhost:3000/receive-case/${caseId}`, {
+        const response = await fetch(`${baseURL}/receive-case/${caseId}`, {
           method: 'DELETE',
         });
 
@@ -249,7 +249,7 @@ const DashboardPage = () => {
     console.log('ข้อมูลที่จะส่งไปยังเซิร์ฟเวอร์:', data);
 
     try {
-      const response = await fetch('http://localhost:3000/update-case', {
+      const response = await fetch(`${baseURL}/update-case`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -485,7 +485,7 @@ const DashboardPage = () => {
         return;
       }
 
-      const response = await axios.put(`http://localhost:3000/receive-case/${id}`, {
+      const response = await axios.put(`${baseURL}/receive-case/${id}`, {
         details: updatedDetails, // ใช้ updatedDetails แทน details
       });
 
