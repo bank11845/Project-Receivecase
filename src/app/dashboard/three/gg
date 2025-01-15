@@ -1,0 +1,209 @@
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
+
+import { apiService } from 'src/services/apiService'; // ตรวจสอบว่า apiService เชื่อมต่อกับ backend ถูกต้อง
+import Link from 'next/link';
+
+import MenuIcon from '@mui/icons-material/Menu';
+import SearchIcon from '@mui/icons-material/Search';
+import {
+  Box,
+  Table,
+  AppBar,
+  Button,
+  Select,
+  Toolbar,
+  TableRow,
+  MenuItem,
+  TableBody,
+  TableCell,
+  TableHead,
+  TextField,
+  Typography,
+  IconButton,
+  Pagination,
+  InputAdornment,
+  CircularProgress,
+} from '@mui/material';
+
+const DashboardPage = () => {
+  const [cases, setCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState('');
+
+  // Function to fetch data
+  const fetchCases = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await apiService.get('/receive-case', {
+        params: { search, page: currentPage },
+      });
+
+      if (response.data) {
+        setCases(response.data.cases || []);
+        setTotalPages(response.data.totalPages || 1);
+      } else {
+        setError('Unexpected response format');
+      }
+    } catch (err) {
+      setError('ไม่สามารถโหลดข้อมูลได้ กรุณาลองอีกครั้ง');
+      console.error('Error fetching cases:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, currentPage]);
+
+  useEffect(() => {
+    fetchCases();
+  }, [fetchCases]);
+
+  const handleSearch = () => {
+    setCurrentPage(1); // Reset to page 1 when searching
+    fetchCases();
+  };
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  return (
+    <Box height="100vh" bgcolor="#f5f5f5">
+      {/* Navbar */}
+      <AppBar position="static">
+        <Toolbar>
+          <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            Dashboard
+          </Typography>
+          <Button color="inherit" component={Link} href="/dashboard/add-case">
+            เพิ่มข้อมูลเคส
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      {/* Content */}
+      <Box flex={1} p={3}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h5" fontWeight="bold">
+            Report
+          </Typography>
+        </Box>
+
+        <Box display="flex" gap={2} mb={3}>
+          <TextField type="date" label="Start Date" InputLabelProps={{ shrink: true }} fullWidth />
+          <TextField type="date" label="End Date" InputLabelProps={{ shrink: true }} fullWidth />
+          <Select defaultValue="ทั้งหมด" fullWidth>
+            <MenuItem value="ทั้งหมด">ทั้งหมด</MenuItem>
+            <MenuItem value="ตัวเลือก1">ตัวเลือก1</MenuItem>
+            <MenuItem value="ตัวเลือก2">ตัวเลือก2</MenuItem>
+          </Select>
+          <TextField
+            placeholder="Search Case"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            fullWidth
+          />
+          <Button variant="contained" color="primary" onClick={handleSearch}>
+            ค้นหา
+          </Button>
+        </Box>
+
+        {error && (
+          <Box color="red" textAlign="center" mb={2}>
+            {error}
+          </Box>
+        )}
+
+        {loading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>No.</TableCell>
+                <TableCell>สาขา</TableCell>
+                <TableCell>วันที่เริ่มแจ้ง</TableCell>
+                <TableCell>ปัญหา</TableCell>
+                <TableCell>วิธีแก้ไข</TableCell>
+                <TableCell>เวลาที่ดำเนินการ</TableCell>
+                <TableCell>ความเร่งด่วน</TableCell>
+                <TableCell>รูปภาพ</TableCell>
+                <TableCell>สถานะ</TableCell>
+                <TableCell>แก้ไขข้อมูล</TableCell>
+                <TableCell>รายละเอียดเพิ่มเติม</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {cases.length > 0 ? (
+                cases.map((caseItem, index) => (
+                  <TableRow key={caseItem.receive_case_id || index}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{caseItem.branch_id}</TableCell>
+                    <TableCell>{caseItem.start_date}</TableCell>
+                    <TableCell>{caseItem.problem}</TableCell>
+                    <TableCell>{caseItem.solution || 'ไม่ระบุ'}</TableCell>
+                    <TableCell>{caseItem.duration}</TableCell>
+                    <TableCell style={{ color: caseItem.priority === 'high' ? 'red' : 'green' }}>
+                      {caseItem.priority === 'high' ? 'ด่วนมาก' : 'ไม่เร่งด่วน'}
+                    </TableCell>
+                    <TableCell>
+                      <img
+                        src={caseItem.image_url || '/assets/icons/navbar/ic-dashboard.svg'}
+                        alt="Example"
+                        style={{ width: '50px' }}
+                      />
+                    </TableCell>
+                    <TableCell>{caseItem.status_id}</TableCell>
+                    <TableCell>
+                      <Button variant="outlined" color="primary" size="small">
+                        แก้ไข
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="outlined" color="secondary" size="small">
+                        ดูรายละเอียด
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={11} align="center">
+                    ไม่มีข้อมูล
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+
+        <Box display="flex" justifyContent="center" mt={3}>
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            color="primary"
+          />
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+export default DashboardPage;
