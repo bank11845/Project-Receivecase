@@ -42,6 +42,8 @@ import { get_status } from 'src/actions/maincase';
 import { apiService } from 'src/services/apiService'; // Import for the icon
 import axios from 'axios';
 
+import { CONFIG } from 'src/config-global';
+
 const DashboardPage = () => {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +60,8 @@ const DashboardPage = () => {
   const [selectedCase, setSelectedCase] = useState(null); // สำหรับเก็บ caseItem ที่เลือก
   const isMenuOpen = Boolean(anchorEl);
   const open = Boolean(anchorEl);
+
+  const baseURL = CONFIG.site.serverUrl;
 
   const handleClick = (event, caseItem) => {
     setAnchorEl(event.currentTarget);
