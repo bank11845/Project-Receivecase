@@ -38,8 +38,8 @@ import {
   CircularProgress,
 } from '@mui/material';
 
-import { get_status } from 'src/actions/maincase';
-import { apiService } from 'src/services/apiService'; // Import for the icon
+import { apiService } from 'src/services/apiService';
+import { get_status, get_employee } from 'src/actions/maincase'; // Import for the icon
 import axios from 'axios';
 
 import { CONFIG } from 'src/config-global';
@@ -189,6 +189,8 @@ const DashboardPage = () => {
     selectedBranch: '',
     create_date: '',
     files: [],
+    employee_id: '', // จะไม่ถูกใช้งาน
+    save_em: '2', // ตัวอย่างค่าที่เลือก (employee_id = 2)
   });
 
   const [redirectUrl, setRedirectUrl] = useState(null);
@@ -200,30 +202,6 @@ const DashboardPage = () => {
       window.location.href = redirectUrl;
     }
   }, [redirectUrl]); // ใช้ redirectUrl เป็น dependency
-
-  // const handleMenuClick = () => {
-  //   handleClose(); // ปิดเมนู
-
-  //   console.log('Previous receive_case_id:', formData.receive_case_id); // ค่าก่อนอัปเดต
-  //   console.log('New receive_case_id:', caseItem.receive_case_id); // ค่าที่จะอัปเดต
-
-  //   // อัปเดต formData
-  //   setFormData((prevFormData) => ({
-  //     ...prevFormData,
-  //     receive_case_id: caseItem.receive_case_id, // ตั้งค่าหมายเลขกรณีใหม่
-  //     status_id: caseItem.status_id || '', // ตั้งค่า status_id (ถ้ามี)
-  //     correct: caseItem.correct || '', // ตั้งค่าปัญหาใหม่
-  //     create_date: caseItem.create_date || '', // ตั้งค่าวันที่กรณีใหม่ (ถ้ามี)
-  //   }));
-
-  //   // เตรียม URL แต่ยังไม่เปลี่ยนทันที
-  //   if (caseItem.receive_case_id) {
-  //     const newUrl = `/dashboard/edit_case?receive_case_id=${caseItem.receive_case_id}`;
-  //     setRedirectUrl(newUrl); // ตั้งค่า URL ที่จะเปลี่ยนใน useEffect
-  //   } else {
-  //     console.error('Invalid case ID');
-  //   }
-  // };
 
   useEffect(() => {
     fetchCases();
@@ -307,39 +285,25 @@ const DashboardPage = () => {
 
   //-------------------------------------------------------------------------------------------------------------------------
 
-  // const handleOpenModal = (caseItem) => {
-  //   if (caseItem) {
-  //     // ถ้า caseItem มีข้อมูล
-  //     setFormData((prevFormData) => ({
-  //       ...prevFormData, // คัดลอกค่าเดิมจากฟอร์ม
-  //       receive_case_id: caseItem.receive_case_id || '', // ตั้งค่าหมายเลขกรณีใหม่ (ถ้ามี)
-  //       status_id: caseItem.status_id || '', // ตั้งค่า status_id (ถ้ามี)
-  //       correct: caseItem.correct || '', // ตั้งค่าปัญหาใหม่
-  //       caseDate: caseItem.create_date || '', // ตั้งค่าวันที่กรณีใหม่ (ถ้ามี)
-  //     }));
-  //     setOpenModal(true); // เปิด Modal
-  //   } else {
-  //     // ถ้า caseItem ไม่มีข้อมูล (กรณีนี้ต้องการจัดการเป็นพิเศษ)
-  //     console.error('caseItem is undefined or null');
-  //     setFormData({
-  //       receive_case_id: '',
-  //       status_id: '',
-  //       correct: '',
-  //       caseDate: '',
-  //     });
-  //     setOpenModal(false); // ปิด Modal ถ้าไม่มีข้อมูล
-  //   }
-  // };
+  const handleInputChange = (event) => {
+    const { name, value, type } = event.target; // ตรวจสอบค่าจาก event.target
 
-  //-------------------------------------------------------------------------------------------------------------------------
-
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    // เช็คว่า field ที่ถูกเลือกเป็นประเภท 'date' หรือไม่
+    if (type === 'date') {
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: value, // อัพเดทค่า start_date หรือชื่อฟิลด์อื่นๆ
+      }));
+    } else {
+      // สำหรับประเภทอื่นๆ เช่น 'text', 'select', 'number'
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: value, // อัพเดทค่าตามชื่อฟิลด์
+      }));
+    }
   };
 
+  //-----
   const handleCancel = () => {
     handleCloseModal();
   };
@@ -367,6 +331,23 @@ const DashboardPage = () => {
   const handleMainCaseChange = (e) => {
     setSelectedMainCase(e.target.value);
     setCurrentPage(1); // Reset to the first page when the filter changes
+  };
+
+  const fetchData = async () => {
+    try {
+      const response = await get_employee();
+      console.log('Response from get_employee:', response); // ดูโครงสร้าง response
+
+      if (Array.isArray(response.body)) {
+        setemployee(response.body);
+      } else {
+        console.error('Expected an array, but received:', response);
+        setemployee([]);
+      }
+    } catch (error) {
+      console.error('Error fetching employee data:', error);
+      setemployee([]);
+    }
   };
 
   //-------------------------------------------------------------------------------------------------
@@ -408,7 +389,33 @@ const DashboardPage = () => {
     setFormData({ ...formData, status_id: event.target.value });
   };
 
+  //---------------------------------------------------------------------------------------------------------------------------
+  const [employee, setemployee] = useState([]); // State สำหรับเก็บ main cases
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await get_employee(); // ฟังก์ชันที่ใช้ดึงข้อมูล
+        console.log('Response from get_employee:', response); // ตรวจสอบข้อมูลที่ได้รับ
+
+        // ตรวจสอบว่า response เป็นอาร์เรย์หรือไม่
+        if (Array.isArray(response.body)) {
+          setemployee(response.body); // ถ้าเป็น Array ให้เก็บข้อมูลใน state
+        } else {
+          console.error('Expected an array, but received:', response);
+          setemployee([]); // ถ้าไม่ใช่ Array ให้เก็บ array ว่าง
+        }
+      } catch (error) {
+        console.error('Error fetching employee data:', error);
+        setemployee([]); // หากเกิดข้อผิดพลาดในการดึงข้อมูล, เซ็ตเป็น array ว่าง
+      }
+    };
+
+    fetchData();
+  }, []);
+
   //---------------------------------------------------------------------------------------------------------------
+
   const [openDialog, setOpenDialog] = useState(false);
 
   // Handle the "แก้ไข" button click to populate the form
@@ -416,11 +423,10 @@ const DashboardPage = () => {
     console.log(caseItem);
     setFormData({
       receive_case_id: caseItem.receive_case_id,
-
       selectedMainCaseName: caseItem.main_case_name,
       selectedSubCases: caseItem.selectedSubCases || [],
       // selectedLevelUrgent: caseItem.selectedLevelUrgent,
-      selectedEmployee: caseItem.employee_id, // แก้เป็น employee_id
+      selectedEmployee: caseItem.employee_name,
       selectedTeam: caseItem.team_name,
       create_date: caseItem.create_date,
       problem: caseItem.problem,
@@ -471,6 +477,7 @@ const DashboardPage = () => {
       status_id: caseItem.status_id || '', // ตั้งค่า status_id (ถ้ามี)
       correct: caseItem.correct || '', // ตั้งค่าปัญหา
       caseDate: caseItem.create_date || '', // ตั้งค่าวันที่กรณี (ถ้ามี)
+      employee_id: caseItem.employee_id || '', //
     });
     setOpenModal(true); // เปิด Modal
   };
@@ -504,6 +511,60 @@ const DashboardPage = () => {
       alert('Error occurred while saving the changes.');
     }
   };
+
+  const handleSaveClick = async () => {
+    try {
+      // ข้อมูลที่ต้องการส่งไปยังเซิร์ฟเวอร์
+      const data = {
+        receive_case_id: formData.receive_case_id,
+        status_id: formData.status_id,
+        correct: formData.correct,
+        saev_em: String(formData.save_em), // แปลงค่า save_em เป็นตัวหนังสือ
+        start_date: formData.start_date, // อย่าลืมส่ง start_date ด้วย
+      };
+
+      // ตรวจสอบค่าที่จะส่งไป
+      console.log('Data being sent to server:', data);
+
+      // ตรวจสอบว่ามีข้อมูลที่ต้องการหรือไม่
+      if (
+        !formData.receive_case_id ||
+        !formData.status_id ||
+        !formData.correct ||
+        !formData.save_em || // ตรวจสอบว่า save_em มีค่าหรือไม่
+        !formData.start_date
+      ) {
+        alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+        return;
+      }
+
+      // ส่งคำขอ PUT ไปยังเซิร์ฟเวอร์
+      const response = await fetch(`${baseURL}/update-case`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // ตรวจสอบการตอบกลับจากเซิร์ฟเวอร์
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error:', errorData);
+        alert(`ไม่สามารถบันทึกข้อมูลได้: ${errorData.error}`);
+      } else {
+        const result = await response.json();
+        console.log('Server response:', result);
+        alert(result.success || 'อัปเดตข้อมูลสำเร็จ');
+        handleCloseModal(); // ปิด modal หลังบันทึกสำเร็จ
+      }
+    } catch (error) {
+      console.error('Error in saving data:', error);
+      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+    }
+  };
+
+  //---------------------------------------------------------------------------------------------------------------
 
   return (
     <Box height="100vh" bgcolor="#ffffff">
@@ -611,7 +672,7 @@ const DashboardPage = () => {
               <TableRow>
                 <TableCell align="center">No.</TableCell>
                 <TableCell align="center">สาขา</TableCell>
-                <TableCell align="center">วันที่เริ่มแจ้ง</TableCell>
+                <TableCell align="center">วันที่แจ้ง</TableCell>
                 <TableCell align="center">ปัญหา</TableCell>
                 <TableCell align="center">วิธีแก้ไข</TableCell>
                 <TableCell align="center">เวลาที่ดำเนินการ</TableCell>
@@ -631,18 +692,16 @@ const DashboardPage = () => {
                     <TableCell align="center">{(currentPage - 1) * 5 + index + 1}</TableCell>
                     <TableCell align="center">{caseItem.branch_name}</TableCell>
                     <TableCell align="center">
-                      {new Date(caseItem.create_date).toLocaleDateString('th-TH', {
+                      {new Date(caseItem.create_date).toLocaleString('th-TH', {
                         year: 'numeric',
                         month: '2-digit',
                         day: '2-digit',
-                      })}{' '}
-                      -
-                      {new Date(caseItem.create_date).toLocaleTimeString('th-TH', {
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit',
                       })}
                     </TableCell>
+
                     <TableCell
                       align="center"
                       sx={{
@@ -663,7 +722,7 @@ const DashboardPage = () => {
                         day: '2-digit',
                       })}{' '}
                       -
-                      {new Date(caseItem.start_date).toLocaleTimeString('th-TH', {
+                      {new Date(caseItem.start_date || 'N/A').toLocaleTimeString('th-TH', {
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit',
@@ -699,11 +758,6 @@ const DashboardPage = () => {
                       </Typography>
                     </TableCell>
                     <TableCell align="center">{caseItem.main_case_name}</TableCell>
-                    {/* <TableCell align="center">
-                      <IconButton onClick={() => handleOpenModal(caseItem)}>
-                        <MoreVertIcon />
-                      </IconButton>
-                    </TableCell> */}
                     <TableCell align="center">
                       <IconButton
                         aria-label="more"
@@ -726,24 +780,7 @@ const DashboardPage = () => {
                           onClick={() => {
                             handleClose();
                             handleOpenModal(selectedCase); // ใช้ selectedCase
-                          }} // onClick={() => {
-                          //   if (caseItem) {
-                          //     // ตรวจสอบค่าของ caseItem ก่อน
-                          //     console.log(caseItem); // ดูว่า caseItem มีค่าหรือไม่
-                          //     setFormData({
-                          //       ...formData, // คัดลอกค่าปัจจุบันของ formData
-                          //       receive_case_id: caseItem.receive_case_id, // ตั้งค่าหมายเลขกรณีใหม่
-                          //       caseDate: caseItem.caseDate || '', // ตั้งค่าวันที่ (ถ้ามี)
-                          //       correct: caseItem.correct || '', // ตั้งค่าปัญหาหรือวิธีแก้ไข (ถ้ามี)
-                          //       status_id: caseItem.status_id || '', // ตั้งค่าสถานะ (ถ้ามี)
-                          //     });
-
-                          //     // เปิด modal
-                          //     setOpenModal(true); // หรือ handleOpenModal() หากคุณมีฟังก์ชันนี้
-                          //   }
-                          //   handleClose(); // ปิดเมนูเมื่อคลิก
-                          // }}
-                          // sx={{ color: 'green' }}
+                          }}
                         >
                           บันทึก Case
                         </MenuItem>
@@ -752,12 +789,7 @@ const DashboardPage = () => {
                           onClick={() => {
                             handleClose();
                             handleEditClick(selectedCase); // ใช้ selectedCase
-                          }} // onClick={() => {
-                          //   handleClose();
-                          //   setFormData({ ...formData, receive_case_id: caseItem.receive_case_id });
-                          //   console.log(caseItem);
-                          //   window.location.href = `/dashboard/edit_case?receive_case_id=${caseItem.receive_case_id}`;
-                          // }}
+                          }}
                         >
                           แก้ไขรายละเอียด
                         </MenuItem>
@@ -823,9 +855,9 @@ const DashboardPage = () => {
               label="เลือกวันที่"
               type="date"
               InputLabelProps={{ shrink: true }}
-              name="caseDate"
-              value={formData.caseDate}
-              onChange={handleInputChange} // Handle change
+              name="start_date" // ตรวจสอบว่า name เป็น start_date
+              value={formData.start_date}
+              onChange={handleInputChange}
             />
           </Box>
 
@@ -843,61 +875,33 @@ const DashboardPage = () => {
 
           <Box mt={2}>
             <Typography variant="subtitle1" fontWeight="bold">
-              เลือกพนักงาน
+              พนักงานที่เข้าดำเนินการ
             </Typography>
             <TextField
+              select
+              value={formData.save_em || ''} // ใช้ save_em แทน
+              name="save_em" // ใช้ชื่อฟิลด์เป็น save_em
+              onChange={handleInputChange}
+              label=""
+              variant="outlined"
+              InputLabelProps={{ shrink: true }}
               fullWidth
-              placeholder="ค้นหาจากชื่อ"
-              onChange={(e) => setEmployeeName(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
+              sx={{
+                width: '100%',
+                minWidth: '300px',
+                mt: '20px',
               }}
-            />
-
-            <Box
-              mt={1}
-              maxHeight={150}
-              overflow="auto"
-              border={1}
-              borderColor="grey.300"
-              borderRadius={1}
-              padding={1}
             >
-              <Table>
-                <TableBody>
-                  {employees
-                    .filter((employee) =>
-                      employee.employee_name.toLowerCase().includes(employeeName.toLowerCase())
-                    )
-                    .map((employee, employeeIndex) => (
-                      <TableRow key={employeeIndex}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedEmployees.includes(employee.employee_id)}
-                            onChange={() => {
-                              const updatedEmployees = [...selectedEmployees];
-                              if (updatedEmployees.includes(employee.employee_id)) {
-                                updatedEmployees.splice(
-                                  updatedEmployees.indexOf(employee.employee_id),
-                                  1
-                                );
-                              } else {
-                                updatedEmployees.push(employee.employee_id);
-                              }
-                              setSelectedEmployees(updatedEmployees);
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>{employee.employee_name}</TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </Box>
+              {employee && employee.length > 0 ? (
+                employee.map((option) => (
+                  <MenuItem key={option.employee_id} value={option.employee_id}>
+                    {option.employee_name}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem disabled>ไม่มีข้อมูล</MenuItem>
+              )}
+            </TextField>
           </Box>
 
           <Box mt={2}>
@@ -940,7 +944,7 @@ const DashboardPage = () => {
           <Box mt={2} display="flex" justifyContent="flex-end" gap={2} width="100%">
             <Button
               onClick={() => {
-                handleSave(formData); // Save the formData
+                handleSaveClick(formData); // Save the formData
                 window.location.reload(); // Reload the page after saving
               }}
               variant="contained"
@@ -1068,25 +1072,14 @@ const DashboardPage = () => {
 
                 <Grid item xs={12} md={6}>
                   <TextField
-                    select
                     fullWidth
                     label="ชื่อผู้แจ้ง"
                     variant="outlined"
-                    size="medium"
                     value={formData.selectedEmployee}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        selectedEmployee: e.target.value,
-                      })
-                    }
-                  >
-                    {employees.map((employee) => (
-                      <MenuItem key={employee.employee_id} value={employee.employee_id}>
-                        {employee.employee_name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    InputProps={{
+                      readOnly: true, // ทำให้ไม่สามารถแก้ไขข้อมูลได้
+                    }}
+                  />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
