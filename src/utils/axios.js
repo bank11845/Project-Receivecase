@@ -72,11 +72,11 @@ export const endpoints = {
   dashboard: {
     branches: `${baseURL}/branches`,
     get_employee: `${baseURL}/employee`,
-    img: `${baseURL}/img`, // ใช้เส้นทางนี้สำหรับการดึงข้อมูลภาพทั้งหมด
+    img: `${baseURL}/img`, 
     levelurgencies: `${baseURL}/levelurgencies`,
     main_case: `${baseURL}/main-cases`,
     receive_case: `${baseURL}/receive-case`,
-    receivecaseJoin: `${baseURL}/receive_caseJoin`,
+    receivecaseJoin: `${baseURL}/receive-caseJoin`,
     status: `${baseURL}/status`,
     sub_case: `${baseURL}/subcasedata`,
     subcase: `${baseURL}/subcase`,
