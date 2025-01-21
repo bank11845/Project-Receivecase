@@ -23,7 +23,6 @@ import {
   Toolbar,
   TableRow,
   MenuItem,
-  Checkbox,
   TableBody,
   TableCell,
   TableHead,
@@ -31,7 +30,6 @@ import {
   Typography,
   IconButton,
   Pagination,
-  InputLabel,
   FormControl,
   initialData,
   InputAdornment,
@@ -39,7 +37,7 @@ import {
 } from '@mui/material';
 
 import { apiService } from 'src/services/apiService';
-import { get_status, get_employee } from 'src/actions/maincase'; // Import for the icon
+import { get_status, get_employee, getMainCase } from 'src/actions/maincase'; // Import for the icon
 import axios from 'axios';
 
 import { CONFIG } from 'src/config-global';
@@ -73,7 +71,6 @@ const DashboardPage = () => {
     setSelectedCase(null); // ล้างข้อมูลเมื่อเมนูปิด
   };
 
-  const [search, setSearch] = useState('');
   const handleMenuOpen = (event, caseItem) => {
     setAnchorEl(event.currentTarget);
     setSelectedCase(caseItem); // เก็บข้อมูลเคสที่เลือก
@@ -142,33 +139,45 @@ const DashboardPage = () => {
 
   //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+  const [search, setSearch] = useState('');
+  const filteredCases = cases.filter((caseItem) =>
+    caseItem.main_case_name.toLowerCase().includes(search.toLowerCase())
+  );
+  // ค้นหาข้อมูล
   const fetchCases = useCallback(async () => {
-    setLoading(true); // ตั้งค่าให้โหลดข้อมูล
-    setError(''); // ล้างข้อผิดพลาดก่อน
-    try {
-      // เรียก API โดยส่งพารามิเตอร์ที่ใช้การค้นหา
-      const response = await apiService.get('/receive-case', {
-        params: {
-          search, // ค่าการค้นหาทั้งหมด
-          page: currentPage, // หน้าที่กำลังแสดง
-          limit: 5, // จำนวนคดีต่อหน้า
-          branch_name: search, // ใช้ค่าการค้นหาในฟิลด์ branch_name
-          status_name: search, // ใช้ค่าการค้นหาในฟิลด์ status_name
-          problem: search, // ใช้ค่าการค้นหาในฟิลด์ problem
-        },
-      });
+    setLoading(true);
+    setError('');
 
-      if (response.data) {
-        setCases(response.data.cases || []); // กำหนดค่าคดีที่ได้จาก API
-        setTotalPages(response.data.totalPages || 1); // กำหนดจำนวนหน้า
+    try {
+      const params = {
+        search,
+        page: currentPage,
+        limit: 5,
+        branch_name: search,
+        status_name: search, // Adding status_name to the search
+        problem: search,
+        main_case_name: search,
+      };
+
+      console.log('Request params:', params); // Log request parameters
+
+      const response = await apiService.get('/receive-case', { params });
+
+      console.log('Full API response:', response); // Log the entire response
+
+      if (response.data && response.status === 200) {
+        console.log('API data:', response.data);
+        setCases(response.data.cases || []);
+        setTotalPages(response.data.totalPages || 1);
       } else {
-        setError('รูปแบบข้อมูลที่ได้รับไม่ถูกต้อง'); // ข้อผิดพลาดในกรณีที่ไม่มีข้อมูล
+        console.error('API error response:', response.data);
+        setError(response.data.message || 'The data format received is incorrect');
       }
     } catch (fetchError) {
-      setError('ไม่สามารถโหลดข้อมูลได้ กรุณาลองอีกครั้ง'); // ข้อผิดพลาดในการดึงข้อมูลจาก API
       console.error('Error fetching cases:', fetchError);
+      setError('Unable to fetch data, please try again');
     } finally {
-      setLoading(false); // เมื่อการโหลดเสร็จสิ้น
+      setLoading(false);
     }
   }, [search, currentPage]);
 
@@ -182,7 +191,7 @@ const DashboardPage = () => {
     problem: '',
     details: '',
     selectedMainCase: '',
-    selectedSubCases: [],
+    selectedcombinedSubCaseNames: '',
     selectedLevelUrgent: '',
     selectedEmployee: '',
     selectedTeam: '',
@@ -285,7 +294,11 @@ const DashboardPage = () => {
 
   //-------------------------------------------------------------------------------------------------------------------------
 
+  // กรองข้อมูลกรณีตามกรณีที่เลือก
+
   const handleInputChange = (event) => {
+    setSelectedCase(event.target.value); // อัพเดทค่าที่เลือก
+
     const { name, value, type } = event.target; // ตรวจสอบค่าจาก event.target
 
     // เช็คว่า field ที่ถูกเลือกเป็นประเภท 'date' หรือไม่
@@ -328,34 +341,33 @@ const DashboardPage = () => {
     fetchMainCases();
   }, [fetchMainCases]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getMainCase(); // เรียกใช้ฟังก์ชัน getSubcaseData
+        console.log('Response from setMainCases:', response); // ตรวจสอบข้อมูลที่ได้รับจาก getSubcaseData
+
+        // ตรวจสอบว่าเป็น Array หรือไม่
+        if (Array.isArray(response)) {
+          setMainCases(response); // ถ้าเป็น Array ให้เก็บข้อมูลใน state
+        } else {
+          console.error('Expected an array from getSubcaseData, but received:', response);
+          setMainCases([]); // หากไม่ใช่ Array ให้กำหนดค่าเป็น Array ว่าง
+        }
+      } catch (error) {
+        console.error('Error fetching subcase data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
   const handleMainCaseChange = (e) => {
     setSelectedMainCase(e.target.value);
     setCurrentPage(1); // Reset to the first page when the filter changes
   };
 
-  const fetchData = async () => {
-    try {
-      const response = await get_employee();
-      console.log('Response from get_employee:', response); // ดูโครงสร้าง response
-
-      if (Array.isArray(response.body)) {
-        setemployee(response.body);
-      } else {
-        console.error('Expected an array, but received:', response);
-        setemployee([]);
-      }
-    } catch (error) {
-      console.error('Error fetching employee data:', error);
-      setemployee([]);
-    }
-  };
-
-  //-------------------------------------------------------------------------------------------------
-
   //----------------------------------------------------------------------------------------------------------
   const [status, setStatus] = useState([]); // State for storing status data
-  // const [formData, setFormData] = useState({ status_id: '' }); // Your form data
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -420,12 +432,31 @@ const DashboardPage = () => {
 
   // Handle the "แก้ไข" button click to populate the form
   const handleEditClick = (caseItem) => {
-    console.log(caseItem);
+    // เรียกข้อมูล sub_case_names ที่ตรงกับ receive_case_id
+    const fetchSubCaseNames = async () => {
+      // Remove caseItem parameter here
+      try {
+        const response = await axios.get(`${baseURL}/sub_casejoin`);
+        if (response.status === 200) {
+          // สมมติว่า API ส่งข้อมูลตาม caseItem.receive_case_id
+          const selectedCase = response.data.body.find(
+            (item) => item.receive_case_id === caseItem.receive_case_id // Access caseItem directly here
+          );
+          if (selectedCase) {
+            setCombinedSubCaseNames(selectedCase.combined_sub_case_names || '');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch sub case names:', error);
+      }
+    };
+
+    // เรียก fetchSubCaseNames และตั้งค่า state ของ formData
+    fetchSubCaseNames(); // Call it without passing caseItem here
+
     setFormData({
       receive_case_id: caseItem.receive_case_id,
       selectedMainCaseName: caseItem.main_case_name,
-      selectedSubCases: caseItem.selectedSubCases || [],
-      // selectedLevelUrgent: caseItem.selectedLevelUrgent,
       selectedEmployee: caseItem.employee_name,
       selectedTeam: caseItem.team_name,
       create_date: caseItem.create_date,
@@ -435,7 +466,8 @@ const DashboardPage = () => {
       files: caseItem.files || [],
       selectedLevelUrgent: caseItem.level_urgent_name,
     });
-    setOpenDialog(true);
+
+    setOpenDialog(true); // เปิด dialog
   };
 
   const handleSelectChange = (event) => {
@@ -449,14 +481,14 @@ const DashboardPage = () => {
 
   const fetchSubCases = useCallback(async () => {
     try {
-      const response = await apiService.get('/sub-case');
+      const response = await axios.get(`${baseURL}/sub_casejoin`);
       if (response.data) {
         setSubCases(response.data.subCases || []); // อัปเดต state ด้วยข้อมูลที่ได้จาก API
       }
     } catch (fetchError) {
       console.error('Error fetching sub-cases:', fetchError);
     }
-  }, []);
+  }, [baseURL]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -566,6 +598,29 @@ const DashboardPage = () => {
 
   //---------------------------------------------------------------------------------------------------------------
 
+  const [combinedSubCaseNames, setCombinedSubCaseNames] = useState('');
+  const [selectedcombinedSubCaseNames, setSelectedcombinedSubCaseNames] = useState('');
+
+  useEffect(() => {
+    // Function to fetch data from the API
+    const fetchSubCaseNames = async () => {
+      try {
+        const response = await axios.get(`${baseURL}/sub_casejoin`);
+
+        if (response.status === 200 && response.data.body && response.data.body.length > 0) {
+          const { combined_sub_case_names } = response.data.body[0];
+          setCombinedSubCaseNames(combined_sub_case_names || '');
+        } else {
+          console.error('Invalid response format:', response);
+        }
+      } catch (error) {
+        console.error('Failed to fetch sub case names:', error);
+      }
+    };
+
+    fetchSubCaseNames();
+  }, [baseURL]); // Add baseURL to the dependency array
+
   return (
     <Box height="100vh" bgcolor="#ffffff">
       {/* Navbar */}
@@ -587,16 +642,68 @@ const DashboardPage = () => {
                 fullWidth
                 sx={{ flex: 1, minWidth: 320 }} // Allow resizing and a minimum width
               />
-              <FormControl fullWidth sx={{ flex: 1, minWidth: 320 }}>
-                <Select value={selectedMainCase} onChange={handleMainCaseChange}>
-                  <MenuItem value="ทั้งหมด">ทั้งหมด</MenuItem>
-                  {mainCases.map((mainCase) => (
-                    <MenuItem key={mainCase.main_case_id} value={mainCase.main_case_id}>
-                      {mainCase.main_case_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <TextField
+                select
+                fullWidth
+                value={formData.main_case_id || ''} // Default to empty string if undefined
+                name="main_case_id"
+                onChange={handleInputChange}
+                label=""
+                variant="outlined"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                SelectProps={{
+                  displayEmpty: true,
+                  renderValue: (value) => {
+                    if (!value) {
+                      return (
+                        <Button
+                          variant="outlined"
+                          fullWidth
+                          sx={{
+                            border: 'none',
+                            height: '10px',
+                            minWidth: '200px',
+                            textAlign: 'left',
+                            fontWeight: 'normal',
+                          }}
+                        >
+                          ข้อมูล Case
+                        </Button>
+                      );
+                    }
+                    const selectedCase = mainCases.find(
+                      (mainCase) => mainCase.main_case_id === value
+                    );
+                    return (
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          border: 'none',
+                          height: '10px',
+                          minWidth: '200px',
+                          textAlign: 'left',
+                          fontWeight: 'normal',
+                        }}
+                      >
+                        {selectedCase ? selectedCase.main_case_name : ' ข้อมูล Case'}
+                      </Button>
+                    );
+                  },
+                }}
+                sx={{
+                  width: '100%',
+                  maxWidth: '500px',
+                }}
+              >
+                {mainCases.map((option) => (
+                  <MenuItem key={option.main_case_id} value={option.main_case_id}>
+                    {option.main_case_name}
+                  </MenuItem>
+                ))}
+              </TextField>
 
               <TextField
                 placeholder="Search Case"
@@ -681,134 +788,146 @@ const DashboardPage = () => {
                 <TableCell align="center">สถานะ</TableCell>
                 <TableCell align="center">สาเหตุหลัก</TableCell>
                 <TableCell align="center">จัดการข้อมูล</TableCell>
-                {/* <TableCell align="center">แก้ไขข้อมูล</TableCell> */}
               </TableRow>
             </TableHead>
-
             <TableBody>
               {cases.length > 0 ? (
-                cases.map((caseItem, index) => (
-                  <TableRow key={caseItem.receive_case_id || index}>
-                    <TableCell align="center">{(currentPage - 1) * 5 + index + 1}</TableCell>
-                    <TableCell align="center">{caseItem.branch_name}</TableCell>
-                    <TableCell align="center">
-                      {new Date(caseItem.create_date).toLocaleString('th-TH', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}
-                    </TableCell>
-
-                    <TableCell
-                      align="center"
-                      sx={{
-                        whiteSpace: 'nowrap',
-                        maxWidth: '150px', // กำหนดขนาดสูงสุดให้กับเซลล์
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {caseItem.problem}
-                    </TableCell>
-
-                    <TableCell align="center">{caseItem.correct || 'N/A'}</TableCell>
-                    <TableCell align="center">
-                      {new Date(caseItem.start_date).toLocaleDateString('th-TH', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                      })}{' '}
-                      -
-                      {new Date(caseItem.start_date || 'N/A').toLocaleTimeString('th-TH', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Typography
+                cases
+                  .filter((caseItem) => {
+                    // If formData.main_case_id has a value, filter by it
+                    if (formData?.main_case_id) {
+                      return caseItem.main_case_id === formData.main_case_id;
+                    }
+                    return true; // If no main_case_id is selected, show all cases
+                  })
+                  .map((caseItem, index) => (
+                    <TableRow key={caseItem.receive_case_id || index}>
+                      <TableCell align="center">{(currentPage - 1) * 5 + index + 1}</TableCell>
+                      <TableCell align="center">{caseItem.branch_name}</TableCell>
+                      <TableCell align="center">
+                        {new Date(caseItem.create_date).toLocaleString('th-TH', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                      </TableCell>
+                      <TableCell
+                        align="center"
                         sx={{
-                          color:
-                            caseItem.level_urgent_name === 'เร่งด่วน'
-                              ? '#D32F2F'
-                              : caseItem.level_urgent_name === 'ปานกลาง'
+                          whiteSpace: 'nowrap',
+                          maxWidth: '150px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {caseItem.problem}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{
+                          whiteSpace: 'nowrap',
+                          maxWidth: '150px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {caseItem.correct || 'N/A'}
+                      </TableCell>
+                      <TableCell align="center">
+                        {new Date(caseItem.start_date).toLocaleDateString('th-TH', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                        })}{' '}
+                        -
+                        {new Date(caseItem.start_date || 'N/A').toLocaleTimeString('th-TH', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Typography
+                          sx={{
+                            color:
+                              caseItem.level_urgent_name === 'เร่งด่วน'
+                                ? '#D32F2F'
+                                : caseItem.level_urgent_name === 'ปานกลาง'
+                                  ? '#FFA000'
+                                  : '#388E3C',
+                          }}
+                        >
+                          {caseItem.level_urgent_name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center">{caseItem.img_name || 'ไม่มีรูปภาพ'}</TableCell>
+                      <TableCell align="center">
+                        <Typography
+                          sx={{
+                            color:
+                              caseItem.status_name === 'กำลังดำเนินการ'
                                 ? '#FFA000'
-                                : '#388E3C',
-                        }}
-                      >
-                        {caseItem.level_urgent_name}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">{caseItem.img_name || 'ไม่มีรูปภาพ'}</TableCell>
-                    <TableCell align="center">
-                      <Typography
-                        sx={{
-                          color:
-                            caseItem.status_name === 'กำลังดำเนินการ'
-                              ? '#FFA000'
-                              : caseItem.status_name === 'ดำเนินการเสร็จสิ้น'
-                                ? '#388E3C'
-                                : 'inherit',
-                        }}
-                      >
-                        {caseItem.status_name}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">{caseItem.main_case_name}</TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        aria-label="more"
-                        aria-controls="case-menu"
-                        aria-haspopup="true"
-                        onClick={(event) => handleClick(event, caseItem)} // ส่ง caseItem และ event
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
-                      <Menu
-                        id="case-menu"
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={handleClose}
-                        MenuListProps={{
-                          'aria-labelledby': 'more-button',
-                        }}
-                      >
-                        <MenuItem
-                          onClick={() => {
-                            handleClose();
-                            handleOpenModal(selectedCase); // ใช้ selectedCase
+                                : caseItem.status_name === 'ดำเนินการเสร็จสิ้น'
+                                  ? '#388E3C'
+                                  : 'inherit',
                           }}
                         >
-                          บันทึก Case
-                        </MenuItem>
-
-                        <MenuItem
-                          onClick={() => {
-                            handleClose();
-                            handleEditClick(selectedCase); // ใช้ selectedCase
+                          {caseItem.status_name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center">{caseItem.main_case_name || 'N/A'}</TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          aria-label="more"
+                          aria-controls="case-menu"
+                          aria-haspopup="true"
+                          onClick={(event) => handleClick(event, caseItem)} // ส่ง caseItem และ event
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
+                        <Menu
+                          id="case-menu"
+                          anchorEl={anchorEl}
+                          open={Boolean(anchorEl)}
+                          onClose={handleClose}
+                          MenuListProps={{
+                            'aria-labelledby': 'more-button',
                           }}
                         >
-                          แก้ไขรายละเอียด
-                        </MenuItem>
+                          <MenuItem
+                            onClick={() => {
+                              handleClose();
+                              handleOpenModal(selectedCase); // ใช้ selectedCase
+                            }}
+                          >
+                            เข้าดำเนินการ
+                          </MenuItem>
 
-                        <MenuItem
-                          onClick={() => {
-                            handleClose();
-                            handleDeleteCase(selectedCase.receive_case_id);
-                          }}
-                          sx={{ color: 'red' }}
-                        >
-                          ลบ
-                        </MenuItem>
+                          <MenuItem
+                            onClick={() => {
+                              handleClose();
+                              handleEditClick(selectedCase); // caseItem มาจาก context ด้านบน
+                            }}
+                          >
+                            แก้ไขรายละเอียด
+                          </MenuItem>
 
-                        {/* Add Save button */}
-                      </Menu>
-                    </TableCell>
-                  </TableRow>
-                ))
+                          <MenuItem
+                            onClick={() => {
+                              handleClose();
+                              handleDeleteCase(selectedCase.receive_case_id);
+                            }}
+                            sx={{ color: 'red' }}
+                          >
+                            ลบ
+                          </MenuItem>
+                        </Menu>
+                      </TableCell>
+                    </TableRow>
+                  ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={12} align="center">
@@ -1027,35 +1146,15 @@ const DashboardPage = () => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel>สาเหตุย่อย</InputLabel>
-                    <Select
-                      multiple
-                      value={formData.selectedSubCases} // Ensure this is an array
-                      onChange={handleSelectChange}
-                      label="สาเหตุย่อย"
-                      renderValue={(selected) =>
-                        selected
-                          .map((id) => {
-                            const subCase = subCases.find((item) => item.sub_case_id === id);
-                            return subCase ? subCase.sub_case_name : '';
-                          })
-                          .join(', ')
-                      }
-                    >
-                      {subCases.map((subCase) => (
-                        <MenuItem key={subCase.sub_case_id} value={subCase.sub_case_id}>
-                          <Checkbox
-                            checked={
-                              Array.isArray(formData.selectedSubCases) &&
-                              formData.selectedSubCases.indexOf(subCase.sub_case_id) > -1
-                            }
-                          />
-                          <ListItemText primary={subCase.sub_case_name} />
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <TextField
+                    fullWidth
+                    label="สาเหตุย่อย"
+                    variant="outlined"
+                    value={combinedSubCaseNames || ''} // ใช้ค่า combinedSubCaseNames ที่อัปเดต
+                    InputProps={{
+                      readOnly: true, // ห้ามแก้ไข
+                    }}
+                  />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
