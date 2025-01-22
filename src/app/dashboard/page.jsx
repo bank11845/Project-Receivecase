@@ -617,7 +617,7 @@ const DashboardPage = () => {
         console.error('Failed to fetch sub case names:', error);
       }
     };
-
+    
     fetchSubCaseNames();
   }, [baseURL]); // Add baseURL to the dependency array
 

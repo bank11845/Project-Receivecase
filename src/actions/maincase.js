@@ -23,13 +23,12 @@ export async function getSubcaseData() {
   try {
     const data = await fetcher(endpoints.dashboard.sub_case);
 
-    // แปลง JSON string เป็น array object
     const subCaseArray = JSON.parse(data.body);
 
-    return subCaseArray; // คืนค่า array object
+    return subCaseArray; 
   } catch (error) {
     console.error('Error fetching sub case:', error);
-    throw error; // เพื่อให้ส่วนที่เรียกใช้รู้ว่ามีข้อผิดพลาด
+    throw error; 
   }
 }
 

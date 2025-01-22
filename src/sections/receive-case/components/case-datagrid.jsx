@@ -122,10 +122,10 @@ const CaseDataGrid = ({
             handleOpenModal(params.row);
             console.log(params.row);
             }}>
-            แก้ไข
+            เข้าดำเนินการ
           </Button>
           <Button variant="contained" color="secondary" size="small" onClick={() => params.row}>
-            ลบ
+            เเก้ไขข้อมูล
           </Button>
         </div>
       ),

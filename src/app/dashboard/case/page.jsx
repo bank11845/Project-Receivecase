@@ -39,42 +39,36 @@ const AddCasePage = () => {
   //---------------------------------------------------------------------------------------------
 
   // ฟังชั่น get All subcaseData
-  const [subcasedata, setSubcaseData] = useState([]); // State สำหรับเก็บ subcases
+  const [subcasedata, setSubcaseData] = useState([]); 
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await getSubcaseData(); // ฟังก์ชัน getSubcaseData ของคุณ
-        console.log('Response from getSubcaseData:', response); // ตรวจสอบข้อมูลที่ได้รับจาก getSubcaseData
+        const response = await getSubcaseData(); 
+        console.log('Response from getSubcaseData:', response);
 
-        // ตรวจสอบว่า response มี property 'body' หรือไม่ และแปลงจาก string เป็น array
-        if (response && response.body) {
-          try {
-            const parsedData = JSON.parse(response.body); // แปลง string JSON เป็น array
-            // ตรวจสอบว่า parsedData เป็น array หรือไม่
-            if (Array.isArray(parsedData)) {
-              setSubcaseData(parsedData); // ถ้าเป็น Array ให้เก็บข้อมูลใน state
-            } else {
-              console.error('Expected an array inside the body, but received:', parsedData);
-              setSubcaseData([]); // หากไม่ใช่ Array ให้กำหนดค่าเป็น Array ว่าง
-            }
-          } catch (error) {
-            console.error('Error parsing JSON data:', error);
-            setSubcaseData([]); // กำหนดเป็น array ว่างถ้าเกิด error ในการแปลง JSON
+        if (response) {
+          const data = await response;
+
+          // ตรวจสอบว่า data เป็น array หรือไม่
+          if (Array.isArray(data)) {
+            setSubcaseData(data); // ถ้าเป็น Array ให้เก็บข้อมูลใน state
+          } else {
+            console.error('Expected an array, but received:', data);
+            setSubcaseData([]); // ถ้าไม่ใช่ Array ให้เก็บ array ว่าง
           }
         } else {
-          console.error('Response body is missing or invalid:', response);
-          setSubcaseData([]); // หาก body ไม่มีหรือข้อมูลผิดรูปแบบ ให้กำหนดเป็น array ว่าง
+          console.error('Error with response:', response);
+          setSubcaseData([]); // ถ้า response ไม่ถูกต้อง, set เป็น array ว่าง
         }
       } catch (error) {
-        console.error('Error fetching subcase data:', error);
+        console.error('Error fetching branch data:', error);
         setSubcaseData([]); // หากเกิดข้อผิดพลาดในการดึงข้อมูล, เซ็ตเป็น array ว่าง
       }
     };
 
-    fetchData(); // เรียกใช้งาน fetchData เมื่อคอมโพเนนต์โหลด
-  }, []); // ใช้ useEffect เพียงครั้งเดียวเมื่อคอมโพเนนต์โหลด
-
+    fetchData();
+  }, []);
   //------------------------------------------------------------------------------------------------------
 
   // ฟังชั่น GetAll  branchs
@@ -83,14 +77,11 @@ const AddCasePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await getbranchs(); // ฟังก์ชัน getbranchs ของคุณ
-        console.log('Response from getbranchs:', response); // ตรวจสอบข้อมูลที่ได้รับจาก getbranchs
+        const response = await getbranchs();
+        console.log('Response from getbranchs:', response);
 
-        console.log(response);
-
-        // ตรวจสอบว่า response ถูกต้อง และเป็น JSON
-        if (response && response.body) {
-          const data = await response.body; // แปลง response เป็น JSON (อัตโนมัติ)
+        if (response) {
+          const data = await response;
 
           // ตรวจสอบว่า data เป็น array หรือไม่
           if (Array.isArray(data)) {
@@ -109,64 +100,60 @@ const AddCasePage = () => {
       }
     };
 
-    fetchData(); // เรียกใช้งาน fetchData เมื่อคอมโพเนนต์โหลด
-  }, []); // ใช้ useEffect เพียงครั้งเดียวเมื่อคอมโพเนนต์โหลด
-  // Function to remove all files
-
+    fetchData();
+  }, []);
   //------------------------------------------------------------------------------------------------------
 
-  const [levelurgent, setlevelurgent] = useState([]); // State สำหรับเก็บ main cases
+  const [levelurgent, setlevelurgent] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await getlevelurgencies(); // ฟังก์ชัน getbranchs ของคุณ
-        console.log('Response from getbranchs:', response); // ตรวจสอบข้อมูลที่ได้รับจาก getbranchs
+        const response = await getlevelurgencies();
+        console.log('Response from getbranchs:', response);
 
         console.log(response);
 
-        // ตรวจสอบว่า response ถูกต้อง และเป็น JSON
-        if (response && response.body) {
-          const data = await response.body; // แปลง response เป็น JSON (อัตโนมัติ)
+        if (response) {
+          const data = await response;
 
-          // ตรวจสอบว่า data เป็น array หรือไม่
           if (Array.isArray(data)) {
-            setlevelurgent(data); // ถ้าเป็น Array ให้เก็บข้อมูลใน state
+            setlevelurgent(data);
           } else {
             console.error('Expected an array, but received:', data);
-            setlevelurgent([]); // ถ้าไม่ใช่ Array ให้เก็บ array ว่าง
+            setlevelurgent([]);
           }
         } else {
           console.error('Error with response:', response);
-          setlevelurgent([]); // ถ้า response ไม่ถูกต้อง, set เป็น array ว่าง
+          setlevelurgent([]);
         }
       } catch (error) {
         console.error('Error fetching branch data:', error);
-        setlevelurgent([]); // หากเกิดข้อผิดพลาดในการดึงข้อมูล, เซ็ตเป็น array ว่าง
+        setlevelurgent([]);
       }
     };
     fetchData();
   }, []);
 
   //---------------------------------------------------------------------------------------------------------------------------
-  const [employee, setemployee] = useState([]); // State สำหรับเก็บ main cases
+  const [employee, setemployee] = useState([]); 
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await get_employee(); // ฟังก์ชันที่ใช้ดึงข้อมูล
-        console.log('Response from get_employee:', response); // ตรวจสอบข้อมูลที่ได้รับ
+        const response = await get_employee(); 
+        console.log('Response from get_employee:', response); 
 
-        // ตรวจสอบว่า response เป็นอาร์เรย์หรือไม่
-        if (Array.isArray(response.body)) {
-          setemployee(response.body); // ถ้าเป็น Array ให้เก็บข้อมูลใน state
+       
+        if (Array.isArray(response)) {
+          setemployee(response); 
         } else {
           console.error('Expected an array, but received:', response);
-          setemployee([]); // ถ้าไม่ใช่ Array ให้เก็บ array ว่าง
+          setemployee([]); 
         }
       } catch (error) {
         console.error('Error fetching employee data:', error);
-        setemployee([]); // หากเกิดข้อผิดพลาดในการดึงข้อมูล, เซ็ตเป็น array ว่าง
+        setemployee([]); 
       }
     };
 
@@ -174,24 +161,24 @@ const AddCasePage = () => {
   }, []);
 
   //---------------------------------------------------------------------------------------------------------------------------
-  const [team, setteam] = useState([]); // State สำหรับเก็บ main cases
+  const [team, setteam] = useState([]); 
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await get_team(); // ฟังก์ชันที่ใช้ดึงข้อมูล
-        console.log('Response from get_employee:', response); // ตรวจสอบข้อมูลที่ได้รับ
+        const response = await get_team();
+        console.log('Response from getteam:', response); 
 
-        // ตรวจสอบว่า response เป็นอาร์เรย์หรือไม่
-        if (Array.isArray(response.body)) {
-          setteam(response.body); // ถ้าเป็น Array ให้เก็บข้อมูลใน state
+      
+        if (Array.isArray(response)) {
+          setteam(response); 
         } else {
           console.error('Expected an array, but received:', response);
-          setteam([]); // ถ้าไม่ใช่ Array ให้เก็บ array ว่าง
+          setteam([]); 
         }
       } catch (error) {
         console.error('Error fetching employee data:', error);
-        setteam([]); // หากเกิดข้อผิดพลาดในการดึงข้อมูล, เซ็ตเป็น array ว่าง
+        setteam([]); 
       }
     };
 
@@ -577,7 +564,7 @@ const AddCasePage = () => {
                       InputLabelProps={{ shrink: true }}
                       sx={{ height: '100%' }}
                     >
-                      {employee.map((option) => (
+                      {employee?.map((option) => (
                         <MenuItem key={option.employee_id} value={option.employee_id}>
                           {option.employee_name}
                         </MenuItem>
@@ -603,7 +590,7 @@ const AddCasePage = () => {
                         },
                       }}
                     >
-                      {team.map((option) => (
+                      {team?.map((option) => (
                         <MenuItem key={option.team_id} value={option.team_id}>
                           {option.team_id} - {option.team_name}{' '}
                           {/* แสดงทั้ง team_id และ team_name */}
@@ -630,7 +617,7 @@ const AddCasePage = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    value={formData.problem || ''} // Default to empty string if undefined
+                    value={formData?.problem || ''} // Default to empty string if undefined
                     name="problem"
                     onChange={handleInputChange}
                     label="ปัญหา"
@@ -648,7 +635,7 @@ const AddCasePage = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    value={formData.details || ''} // Default to empty string if undefined
+                    value={formData?.details || ''} // Default to empty string if undefined
                     name="details"
                     onChange={handleInputChange}
                     label="รายละเอียด"
@@ -672,7 +659,7 @@ const AddCasePage = () => {
                   <FormControl fullWidth variant="outlined" sx={{ height: '100%' }}>
                     <TextField
                       select
-                      value={formData.branch_id || ''}
+                      value={formData?.branch_id || ''}
                       name="branch_id"
                       onChange={handleInputChange}
                       label="สาขา"
