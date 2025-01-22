@@ -93,9 +93,10 @@ const AddCaseModal = ({
                     name="sub_case_id"
                     onChange={(event) => {
                       const { value } = event.target;
+                      // ทำให้มั่นใจว่าค่าที่เลือกเป็นอาร์เรย์
                       setFormData((prev) => ({
                         ...prev,
-                        sub_case_id: typeof value === 'string' ? value.split(',') : value,
+                        sub_case_id: Array.isArray(value) ? value : value.split(','),
                       }));
                     }}
                     label="สาเหตุย่อย"
@@ -120,6 +121,7 @@ const AddCaseModal = ({
                     ))}
                   </TextField>
                 </Grid>
+
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth variant="outlined">
                     <InputLabel shrink htmlFor="urgent_level_id">
