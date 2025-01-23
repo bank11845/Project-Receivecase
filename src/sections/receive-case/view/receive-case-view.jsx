@@ -21,8 +21,12 @@ import {
 import CaseDataGrid from '../components/case-datagrid';
 
 export function ReceiveCaseView() {
-  const { Receivecase, ReceivecaseLoading, ReceivecaseError, ReceivecaseEmpty } =
+  const { Receivecase, ReceivecaseLoading, ReceivecaseError, ReceivecaseEmpty, refetchReceivecase } =
     useGetReceivecase();
+
+    const handleRefresh = () => {
+      refetchReceivecase(); // เรียก refetch ข้อมูลใหม่
+    };
 
   // เพิ่ม State เพื่อเก็บข้อมูลจาก allData
   const [mainCase, setMainCase] = useState(null);
@@ -104,6 +108,7 @@ export function ReceiveCaseView() {
           employees={employees}
           teams={teams}
           status={status}
+          handleRefresh={handleRefresh}
         />
       </Box>
     </DashboardContent>

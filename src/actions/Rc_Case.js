@@ -17,7 +17,7 @@
   export function useGetReceivecase() {
     const url = endpoints.dashboard.receivecaseJoin;
 
-    const { data, isLoading, error, isValidating } = useSWR(url, fetcher, swrOptions);
+    const { data, isLoading, error, isValidating, mutate  } = useSWR(url, fetcher, swrOptions);
     console.log(data)
     const memoizedValue = useMemo(
       () => ({
@@ -25,9 +25,9 @@
         ReceivecaseLoading: isLoading,
         ReceivecaseError: error,
         ReceivecaseValidating: isValidating,
-        
+        refetchReceivecase: mutate
       }),
-      [data, error, isLoading, isValidating]
+      [data, error, isLoading, isValidating, mutate]
     );
 
     return memoizedValue;

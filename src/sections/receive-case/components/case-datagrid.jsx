@@ -1,13 +1,14 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import axios from 'axios';
 import * as XLSX from 'xlsx';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { saveAs } from 'file-saver';
 import { Icon } from '@iconify/react';
 import React, { useState, useEffect } from 'react';
 
-import { DataGrid, GridToolbar,  } from '@mui/x-data-grid';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { Box, Grid, Button, MenuItem, TextField, Typography, InputAdornment } from '@mui/material';
+
+import axiosInstance from 'src/utils/axios';
 
 import { CONFIG } from 'src/config-global';
 
@@ -26,6 +27,7 @@ const CaseDataGrid = ({
   teams,
   employees,
   status,
+  handleRefresh,
 }) => {
   const [rows, setRows] = useState([]);
   const [filteredRows, setFilteredRows] = useState([]);
@@ -146,7 +148,7 @@ const CaseDataGrid = ({
     formDataToSend.append('sub_case_ids', numericSubCaseIds);
 
     try {
-      const response = await axios.post(`${baseURL}/receive-case`, formDataToSend, {
+      const response = await axiosInstance.post(`${baseURL}/receive-case`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data', // กำหนด Content-Type
           'ngrok-skip-browser-warning': 'true', // กำหนด ngrok header
@@ -157,6 +159,7 @@ const CaseDataGrid = ({
       if (response.data.status === 201) {
         alert('บันทึกข้อมูลสำเร็จ!');
       } else {
+        handleRefresh();
         alert(`ไม่สามารถบันทึกข้อมูลได้: ${response.data.message || 'ไม่ทราบสาเหตุ'}`);
       }
     } catch (error) {
@@ -230,6 +233,7 @@ const CaseDataGrid = ({
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
       });
 
@@ -241,8 +245,11 @@ const CaseDataGrid = ({
         const result = await response.json();
         console.log('Server response:', result);
         setHasSubmitted(true);
+        alert(result.success || 'อัปเดตข้อมูลสำเร็จ');
+        handleRefresh();
         setDialogMessage(result.success || 'อัปเดตข้อมูลสำเร็จ');
-        window.location.reload(); // Reload the page after saving
+        setOpenTakeAction(false);
+        // window.location.reload(); // Reload the page after saving
       }
     } catch (error) {
       console.error('Error in saving data:', error);
