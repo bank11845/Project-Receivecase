@@ -1,11 +1,13 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import axios from 'axios';
-import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { saveAs } from 'file-saver';
 import { Icon } from '@iconify/react';
 import React, { useState, useEffect } from 'react';
 
-import Grid2 from '@mui/material/Unstable_Grid2';
-import { DataGrid, GridToolbar, GridExcelExport } from '@mui/x-data-grid';
-import { Box, Button, MenuItem, TextField, Typography, InputAdornment, Grid } from '@mui/material';
+import { DataGrid, GridToolbar,  } from '@mui/x-data-grid';
+import { Box, Grid, Button, MenuItem, TextField, Typography, InputAdornment } from '@mui/material';
 
 import { CONFIG } from 'src/config-global';
 
@@ -35,18 +37,11 @@ const CaseDataGrid = ({
   const subcasedata = subCaseData;
   const levelurgent = levelUrgencies;
   const employee = employees;
+
   const team = teams;
   const files = [];
 
   console.log(status);
-
-  // const handleInputUpdateChange = (event) => {
-  //   const { name, value } = event.target;
-  //   setFormUpdateData((prev) => ({
-  //     ...prev,
-  //     [name]: value,
-  //   }));
-  // };
 
   const handleFileChange = (event) => {
     const uploadedFiles = Array.from(event.target.files);
@@ -72,16 +67,6 @@ const CaseDataGrid = ({
   };
 
   const baseURL = CONFIG.site.serverUrl;
-
-  // const [formUpdateData, setFormUpdateData] = useState({
-  //   employee_id: null,
-  //   team_id: null,
-  //   main_case_id: null,
-  //   status_id: null,
-  //   saev_em: '',
-  //   correct: '',
-  //   start_date: null,
-  // });
 
   // AddCase ---------------------------------------------------------------------------------------------------------------------------------------------------
   const [formData, setFormData] = useState({
@@ -190,14 +175,11 @@ const CaseDataGrid = ({
 
   // ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-
   const [anchorEl, setAnchorEl] = useState(null); // สำหรับเก็บตำแหน่งของเมนู
   const handleOpenModal = (row) => {
     setFormDataUpdate({ ...row }); // เซ็ต selectedRow ลงใน formDataUpdate
     setOpenTakeAction(true); // เปิด Modal
   };
- 
-
 
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
@@ -208,43 +190,41 @@ const CaseDataGrid = ({
     correct: '',
     start_date: null,
     end_date: null,
-
   });
 
   const handleInputChangeUpdate = (event) => {
     const { name, value } = event.target;
-    
+
     if (name === 'saev_em') {
       // ค้นหาพนักงานจากชื่อพนักงานที่เลือกใน dropdown
-      const selectedEmployee = employee.find(emp => emp.employee_id === value);
-      
+      const selectedEmployee = employee.find((emp) => emp.employee_id === value);
+
       if (selectedEmployee) {
-        setFormDataUpdate(prevState => ({
+        setFormDataUpdate((prevState) => ({
           ...prevState,
           [name]: selectedEmployee.employee_id, // เก็บ employee_id แทนชื่อพนักงาน
         }));
       }
     } else {
-      setFormDataUpdate(prevState => ({
+      setFormDataUpdate((prevState) => ({
         ...prevState,
         [name]: value,
       }));
     }
   };
-  
+
   const handleUpdeteClick = async () => {
     try {
       const data = {
         receive_case_id: formDataUpdate.receive_case_id,
         status_id: formDataUpdate.status_id,
-        saev_em: formDataUpdate.saev_em, 
+        saev_em: String(formDataUpdate.saev_em),
         correct: formDataUpdate.correct,
         start_date: formDataUpdate.start_date,
-        end_date: formDataUpdate.end_date,
       };
-  
+
       console.log('Data being sent to server:', data);
-  
+
       const response = await fetch(`${baseURL}/update-case`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -252,7 +232,7 @@ const CaseDataGrid = ({
           'Content-Type': 'application/json',
         },
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Error:', errorData);
@@ -262,14 +242,13 @@ const CaseDataGrid = ({
         console.log('Server response:', result);
         setHasSubmitted(true);
         setDialogMessage(result.success || 'อัปเดตข้อมูลสำเร็จ');
+        window.location.reload(); // Reload the page after saving
       }
     } catch (error) {
       console.error('Error in saving data:', error);
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
   };
-  
-
 
   // const handleEditClick = (caseItem) => {
   //   // เรียกข้อมูล sub_case_names ที่ตรงกับ receive_case_id
@@ -342,6 +321,31 @@ const CaseDataGrid = ({
     }
   };
 
+  // eslint-disable-next-line no-shadow
+  const exportToExcelUTF8 = (rows, columns) => {
+    const data = rows.map((row) => {
+      const rowData = {};
+      columns.forEach((column) => {
+        rowData[column.headerName] = row[column.field] || '';
+      });
+      return rowData;
+    });
+
+    // สร้าง Worksheet และ Workbook
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+
+    // เขียนไฟล์ Excel
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array',
+    });
+
+    const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(dataBlob, 'ข้อมูลภาษาไทย.xlsx');
+  };
+
   const columns = [
     {
       field: 'actions',
@@ -374,7 +378,7 @@ const CaseDataGrid = ({
           >
             <Icon icon="akar-icons:person-add" width="24" height="24" />
           </Button>
-  
+
           <Button
             variant="contained"
             size="small"
@@ -412,10 +416,27 @@ const CaseDataGrid = ({
 
     {
       field: 'saev_em',
-      headerName: 'ผู้เข้าดำเนินการ',
+      headerName: 'พนักงานเข้าดำเนินการ',
       width: 200,
-      headerAlign: 'center',
-      align: 'center',
+      renderCell: (params) => {
+        console.log('saev_em value:', params.row?.saev_em);
+        console.log('Employee list:', employees);
+
+        if (!Array.isArray(employees)) {
+          return 'Unknown';
+        }
+
+        // แปลงเป็นตัวเลขเพื่อป้องกันความคลาดเคลื่อนของประเภทข้อมูล
+        const empId = Number(params.row?.saev_em);
+
+        // ตรวจสอบประเภทข้อมูลที่แน่นอนของ employee_id
+        // eslint-disable-next-line no-shadow
+        const employee = employees.find((emp) => Number(emp.employee_id) === empId);
+
+        console.log('Matched employee:', employee);
+
+        return employee ? employee.employee_name : 'Unknown';
+      },
     },
     {
       field: 'create_date',
@@ -465,8 +486,7 @@ const CaseDataGrid = ({
       },
     },
     { field: 'team_name', headerName: 'ทีม', width: 200, headerAlign: 'center', align: 'center' },
-   
-   
+
     {
       field: 'status_name',
       headerName: 'สถานะ Case',
@@ -478,7 +498,7 @@ const CaseDataGrid = ({
         return <span style={{ color }}>{params.value}</span>;
       },
     },
-  
+
     {
       field: 'start_date',
       headerName: 'วันที่เริ่มดำเนินการ',
@@ -494,7 +514,6 @@ const CaseDataGrid = ({
       align: 'center',
     },
   ];
-  
 
   useEffect(() => {
     // เมื่อโหลดข้อมูลเสร็จสิ้นและมีข้อมูล Receivecase
@@ -626,6 +645,18 @@ const CaseDataGrid = ({
         </Grid>
       </Grid>
 
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => exportToExcelUTF8(rows, columns)}
+        style={{
+          backgroundColor: '#4caf50',
+          color: '#fff',
+          textTransform: 'none',
+        }}
+      >
+        Export to Excel
+      </Button>
       {/* DataGrid */}
       <Box height="600px">
         <DataGrid
@@ -635,17 +666,15 @@ const CaseDataGrid = ({
           pageSize={10}
           slots={{
             toolbar: GridToolbar,
-            GridExcelExport,
           }}
           componentsProps={{
             toolbar: {
-              excelOptions: {
-                fileName: 'ข้อมูลภาษาไทย.xlsx',
-              },
+              onExport: () => exportToExcelUTF8(rows, columns), // เรียกฟังก์ชัน export เมื่อกด Export
             },
           }}
           rowsPerPageOptions={[10, 25, 50]}
         />
+        ;
       </Box>
       {/* AddCaseModal */}
       <AddCaseModal

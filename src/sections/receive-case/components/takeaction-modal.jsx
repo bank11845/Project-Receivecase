@@ -137,6 +137,7 @@ const TakeacitonModal = ({
           variant="contained"
           color="primary"
           sx={{ width: '150px', height: '50px' }}
+          win
         >
           บันทึก
         </Button>
