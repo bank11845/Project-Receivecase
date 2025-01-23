@@ -208,7 +208,7 @@ const CaseDataGrid = ({
     correct: '',
     start_date: null,
     end_date: null,
-    
+
   });
 
   const handleInputChangeUpdate = (event) => {
@@ -216,7 +216,7 @@ const CaseDataGrid = ({
     
     if (name === 'saev_em') {
       // ค้นหาพนักงานจากชื่อพนักงานที่เลือกใน dropdown
-      const selectedEmployee = employee.find(emp => emp.employee_name === value);
+      const selectedEmployee = employee.find(emp => emp.employee_id === value);
       
       if (selectedEmployee) {
         setFormDataUpdate(prevState => ({
