@@ -190,44 +190,14 @@ const CaseDataGrid = ({
 
   // ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-  const [combinedSubCaseNames, setCombinedSubCaseNames] = useState('');
-
-  // const handleInputChange = (event) => {
-  //   setSelectedCase(event.target.value); // อัพเดทค่าที่เลือก
-
-  //   const { name, value, type } = event.target; // ตรวจสอบค่าจาก event.target
-
-  //   // เช็คว่า field ที่ถูกเลือกเป็นประเภท 'date' หรือไม่
-  //   if (type === 'date') {
-  //     setFormData((prevState) => ({
-  //       ...prevState,
-  //       [name]: value, // อัพเดทค่า start_date หรือชื่อฟิลด์อื่นๆ
-  //     }));
-  //   } else {
-  //     // สำหรับประเภทอื่นๆ เช่น 'text', 'select', 'number'
-  //     setFormData((prevState) => ({
-  //       ...prevState,
-  //       [name]: value, // อัพเดทค่าตามชื่อฟิลด์
-  //     }));
-  //   }
-  // };
 
   const [anchorEl, setAnchorEl] = useState(null); // สำหรับเก็บตำแหน่งของเมนู
   const handleOpenModal = (row) => {
     setFormDataUpdate({ ...row }); // เซ็ต selectedRow ลงใน formDataUpdate
     setOpenTakeAction(true); // เปิด Modal
   };
-  // const handleClick = (event, caseItem) => {
-  //   setAnchorEl(event.currentTarget);
-  //   setSelectedCase(caseItem); // เก็บ caseItem ที่คลิก
-  // };
+ 
 
-  // const handleClose = () => {
-  //   setAnchorEl(null);
-  //   setSelectedCase(null); // ล้างข้อมูลเมื่อเมนูปิด
-  // };
-
-  // const [selectedCase, setSelectedCase] = useState(null);
 
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
@@ -238,32 +208,43 @@ const CaseDataGrid = ({
     correct: '',
     start_date: null,
     end_date: null,
+    
   });
 
-  const handleInputChangeUpdate = (e) => {
-    const { name, value } = e.target;
-    setFormDataUpdate((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  const handleInputChangeUpdate = (event) => {
+    const { name, value } = event.target;
+    
+    if (name === 'saev_em') {
+      // ค้นหาพนักงานจากชื่อพนักงานที่เลือกใน dropdown
+      const selectedEmployee = employee.find(emp => emp.employee_name === value);
+      
+      if (selectedEmployee) {
+        setFormDataUpdate(prevState => ({
+          ...prevState,
+          [name]: selectedEmployee.employee_id, // เก็บ employee_id แทนชื่อพนักงาน
+        }));
+      }
+    } else {
+      setFormDataUpdate(prevState => ({
+        ...prevState,
+        [name]: value,
+      }));
+    }
   };
-
+  
   const handleUpdeteClick = async () => {
     try {
-      // ข้อมูลที่ต้องการส่งไปยังเซิร์ฟเวอร์
       const data = {
         receive_case_id: formDataUpdate.receive_case_id,
         status_id: formDataUpdate.status_id,
-        saev_em: String(formDataUpdate.saev_em),
+        saev_em: formDataUpdate.saev_em, 
         correct: formDataUpdate.correct,
         start_date: formDataUpdate.start_date,
         end_date: formDataUpdate.end_date,
       };
   
-      // ตรวจสอบค่าที่จะส่งไป
       console.log('Data being sent to server:', data);
   
-      // ส่งคำขอ PUT ไปยังเซิร์ฟเวอร์
       const response = await fetch(`${baseURL}/update-case`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -272,7 +253,6 @@ const CaseDataGrid = ({
         },
       });
   
-      // ตรวจสอบการตอบกลับจากเซิร์ฟเวอร์
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Error:', errorData);
@@ -280,18 +260,8 @@ const CaseDataGrid = ({
       } else {
         const result = await response.json();
         console.log('Server response:', result);
-  
-        // แสดงข้อความแจ้งเตือนความสำเร็จ
-        Swal.fire({
-          title: 'สำเร็จ!',
-          text: result.success || 'อัปเดตข้อมูลสำเร็จ',
-          icon: 'success',
-          timer: 3000, // ตั้งเวลา 3 วินาที
-          showConfirmButton: false, // ปิดปุ่ม "ตกลง"
-        }).then(() => {
-          // เมื่อเวลาหมด, เปลี่ยนเส้นทางไปที่หน้าแดชบอร์ด
-          window.location.href = '/dashboard/testcase';
-        });
+        setHasSubmitted(true);
+        setDialogMessage(result.success || 'อัปเดตข้อมูลสำเร็จ');
       }
     } catch (error) {
       console.error('Error in saving data:', error);
@@ -379,7 +349,6 @@ const CaseDataGrid = ({
       width: 200,
       headerAlign: 'center',
       align: 'center',
-
       renderCell: (params) => (
         <div
           style={{
@@ -399,17 +368,15 @@ const CaseDataGrid = ({
               color: 'black',
             }}
             onClick={() => {
-              handleOpenModal(params.row);
-
-              console.log(params.row);
+              handleOpenModal(params.row); // เชื่อมโยงกับฟังก์ชันการเปิด Modal
+              console.log(params.row); // แสดงข้อมูลที่เลือก
             }}
           >
             <Icon icon="akar-icons:person-add" width="24" height="24" />
           </Button>
-
+  
           <Button
-            variant="
-            contained"
+            variant="contained"
             size="small"
             sx={{
               backgroundColor: '#FFD700',
@@ -418,14 +385,15 @@ const CaseDataGrid = ({
                 backgroundColor: '#FFC107',
               },
             }}
-            onClick={() => params.row}
+            onClick={() => {
+              // handleEdit(params.row); // ฟังก์ชันสำหรับการแก้ไขข้อมูล
+            }}
           >
             <Icon icon="akar-icons:pencil" width="24" height="24" />
           </Button>
         </div>
       ),
     },
-
     { field: 'id', headerName: 'No.', width: 70, headerAlign: 'center', align: 'center' },
     {
       field: 'branch_name',
@@ -435,51 +403,26 @@ const CaseDataGrid = ({
       align: 'center',
     },
     {
+      field: 'employee_name',
+      headerName: 'ผู้แจ้ง Case',
+      width: 200,
+      headerAlign: 'center',
+      align: 'center',
+    },
+
+    {
+      field: 'saev_em',
+      headerName: 'ผู้เข้าดำเนินการ',
+      width: 200,
+      headerAlign: 'center',
+      align: 'center',
+    },
+    {
       field: 'create_date',
       headerName: 'วันที่แจ้ง',
       width: 150,
       headerAlign: 'center',
       align: 'center',
-    },
-    {
-      field: 'correct',
-      headerName: 'วิธีเเก้ไข',
-      width: 200,
-      headerAlign: 'center',
-      align: 'center',
-    },
-    {
-      field: 'start_date',
-      headerName: 'วันที่เริ่มดำเนินการ',
-      width: 200,
-      headerAlign: 'center',
-      align: 'center',
-    },
-    {
-      field: 'end_date',
-      headerName: 'วันที่ดำเนินการเสร็จสิ้น',
-      width: 150,
-      headerAlign: 'center',
-      align: 'center',
-    },
-    { field: 'problem', headerName: 'ปัญหา', width: 200, headerAlign: 'center', align: 'center' },
-    {
-      field: 'details',
-      headerName: 'รายละเอียด',
-      width: 200,
-      headerAlign: 'center',
-      align: 'center',
-    },
-    {
-      field: 'level_urgent_name',
-      headerName: 'ความเร่งด่วน',
-      width: 150,
-      headerAlign: 'center',
-      align: 'center',
-      renderCell: (params) => {
-        const color = getUrgentLevelColor(params.value);
-        return <span style={{ color }}>{params.value}</span>;
-      },
     },
     {
       field: 'main_case_name',
@@ -495,17 +438,38 @@ const CaseDataGrid = ({
       headerAlign: 'center',
       align: 'center',
     },
-    { field: 'team_name', headerName: 'ทีม', width: 200, headerAlign: 'center', align: 'center' },
+    { field: 'problem', headerName: 'ปัญหา', width: 200, headerAlign: 'center', align: 'center' },
     {
-      field: 'employee_name',
-      headerName: 'ผู้เเจ้งCase',
+      field: 'details',
+      headerName: 'รายละเอียด',
       width: 200,
       headerAlign: 'center',
       align: 'center',
     },
     {
+      field: 'correct',
+      headerName: 'วิธีแก้ไข',
+      width: 200,
+      headerAlign: 'center',
+      align: 'center',
+    },
+    {
+      field: 'level_urgent_name',
+      headerName: 'ความเร่งด่วน',
+      width: 150,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: (params) => {
+        const color = getUrgentLevelColor(params.value);
+        return <span style={{ color }}>{params.value}</span>;
+      },
+    },
+    { field: 'team_name', headerName: 'ทีม', width: 200, headerAlign: 'center', align: 'center' },
+   
+   
+    {
       field: 'status_name',
-      headerName: 'สถานะCase',
+      headerName: 'สถานะ Case',
       width: 200,
       headerAlign: 'center',
       align: 'center',
@@ -514,14 +478,23 @@ const CaseDataGrid = ({
         return <span style={{ color }}>{params.value}</span>;
       },
     },
+  
     {
-      field: 'saev_em',
-      headerName: 'ผู้เข้าดำเนินการ',
+      field: 'start_date',
+      headerName: 'วันที่เริ่มดำเนินการ',
       width: 200,
       headerAlign: 'center',
       align: 'center',
     },
+    {
+      field: 'end_date',
+      headerName: 'วันที่ดำเนินการเสร็จสิ้น',
+      width: 150,
+      headerAlign: 'center',
+      align: 'center',
+    },
   ];
+  
 
   useEffect(() => {
     // เมื่อโหลดข้อมูลเสร็จสิ้นและมีข้อมูล Receivecase

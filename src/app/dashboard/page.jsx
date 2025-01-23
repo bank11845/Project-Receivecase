@@ -1054,7 +1054,6 @@ const DashboardPage = () => {
             <Button
               onClick={() => {
                 handleSaveClick(formData); // Save the formData
-                window.location.reload(); // Reload the page after saving
               }}
               variant="contained"
               color="primary"

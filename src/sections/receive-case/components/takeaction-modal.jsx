@@ -69,7 +69,7 @@ const TakeacitonModal = ({
         </Typography>
         <TextField
           select
-          value={formDataUpdate?.saev_em || ''} // กำหนดค่า value เป็นชื่อพนักงานที่เลือก
+          value={formDataUpdate?.saev_em || ''} // ตรวจสอบค่าที่เลือก
           name="saev_em"
           onChange={handleInputChangeUpdate}
           variant="outlined"
@@ -82,9 +82,9 @@ const TakeacitonModal = ({
         >
           {employee?.length > 0 ? (
             employee.map((option) => (
-              <MenuItem key={option.employee_id} value={option.employee_name}>
+              <MenuItem key={option.employee_id} value={option.employee_id}>
                 {' '}
-                {/* ใช้ employee_name แทน employee_id */}
+                {/* ส่งค่าเป็นชื่อพนักงาน */}
                 {option.employee_name}
               </MenuItem>
             ))
