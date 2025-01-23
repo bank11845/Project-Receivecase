@@ -34,6 +34,7 @@
     "@mui/material": "^5.16.14",
     "@mui/material-nextjs": "^5.15.11",
     "@mui/x-data-grid": "^7.7.0",
+    "@mui/x-data-grid-pro": "^7.24.0",
     "@mui/x-date-pickers": "^7.7.0",
     "@mui/x-tree-view": "^7.7.0",
     "autosuggest-highlight": "^3.3.4",

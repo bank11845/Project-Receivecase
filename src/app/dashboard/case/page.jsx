@@ -322,7 +322,7 @@ const AddCasePage = () => {
     files: [], // สำหรับเก็บไฟล์
   });
 
-  const handleSubmit = async () => {
+   const handleSubmit = async () => {
     const formDataToSend = new FormData();
 
     // ตรวจสอบไฟล์และเพิ่มลงใน formDataToSend

@@ -76,3 +76,5 @@ export function useSearchProducts(query) {
 
   return memoizedValue;
 }
+
+

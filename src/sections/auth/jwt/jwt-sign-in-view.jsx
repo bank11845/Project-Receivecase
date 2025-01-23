@@ -72,6 +72,29 @@ export function JwtSignInView() {
     }
   });
 
+  // const onSubmit = handleSubmit(async (data) => {
+  //   try {
+  //     const response = await signInWithPassword({
+  //       user_name: data.user_name,
+  //       password: data.password,
+  //     });
+  
+  //     console.log('API Response:', response);
+  
+  //     // ตรวจสอบ token
+  //     if (!response || !response.token) {
+  //       throw new Error('Token is missing in the response');
+  //     }
+  
+  //     await checkUserSession?.(); // ตรวจสอบ session
+  //     router.refresh(); // รีเฟรชหน้า
+  //   } catch (error) {
+  //     console.error('Error during sign-in:', error);
+  //     setErrorMsg(error instanceof Error ? error.message : error);
+  //   }
+  // });
+  
+
   const renderHead = (
     <Stack spacing={1.5} sx={{ mb: 5 }}>
       <Typography variant="h5">Sign in to your account</Typography>

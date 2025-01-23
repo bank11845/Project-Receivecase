@@ -17,10 +17,9 @@ const TakeacitonModal = ({
   handleClose,
   employee,
   status,
-  formData,
-  handleInputChange,
-  handleStatusChange,
-  handleSaveClick,
+  formDataUpdate,
+  handleInputChangeUpdate,
+  handleUpdeteClick,
   handleCancel,
 }) => (
   <Modal open={open} onClose={handleClose}>
@@ -29,32 +28,29 @@ const TakeacitonModal = ({
         เข้าดำเนินการ
       </Typography>
 
-      {/* Case ID Field */}
       <Box mt={2}>
         <TextField
           fullWidth
           label="หมายเลขกรณี"
           type="text"
           name="receive_case_id"
-          value={formData?.receive_case_id || ''}
+          value={formDataUpdate?.receive_case_id || ''}
           disabled
         />
       </Box>
 
-      {/* Start Date Field */}
       <Box mt={2}>
         <TextField
           fullWidth
-          label="เลือกวันที่"
+          label="เลือกวันที่เข้าดำเนินการ"
           type="date"
           InputLabelProps={{ shrink: true }}
           name="start_date"
-          value={formData?.start_date || ''}
-          onChange={handleInputChange}
+          value={formDataUpdate?.start_date || ''}
+          onChange={handleInputChangeUpdate}
         />
       </Box>
 
-      {/* Correction Field */}
       <Box mt={2}>
         <TextField
           fullWidth
@@ -62,24 +58,21 @@ const TakeacitonModal = ({
           multiline
           rows={3}
           name="correct"
-          value={formData?.correct || ''}
-          onChange={handleInputChange}
+          value={formDataUpdate?.correct || ''}
+          onChange={handleInputChangeUpdate}
         />
       </Box>
 
-      {/* Employee Selection */}
       <Box mt={2}>
         <Typography variant="subtitle1" fontWeight="bold">
           พนักงานที่เข้าดำเนินการ
         </Typography>
         <TextField
           select
-          value={formData?.save_em || ''}
-          name="save_em"
-          onChange={handleInputChange}
-          label=""
+          value={formDataUpdate?.saev_em || ''} // กำหนดค่า value เป็นชื่อพนักงานที่เลือก
+          name="saev_em"
+          onChange={handleInputChangeUpdate}
           variant="outlined"
-          InputLabelProps={{ shrink: true }}
           fullWidth
           sx={{
             width: '100%',
@@ -87,9 +80,11 @@ const TakeacitonModal = ({
             mt: '20px',
           }}
         >
-          {employee && employee.length > 0 ? (
+          {employee?.length > 0 ? (
             employee.map((option) => (
-              <MenuItem key={option.employee_id} value={option.employee_id}>
+              <MenuItem key={option.employee_id} value={option.employee_name}>
+                {' '}
+                {/* ใช้ employee_name แทน employee_id */}
                 {option.employee_name}
               </MenuItem>
             ))
@@ -99,17 +94,21 @@ const TakeacitonModal = ({
         </TextField>
       </Box>
 
-      {/* Status Selection */}
       <Box mt={2}>
         <FormControl fullWidth>
-          <Select value={formData?.status_id || ''} onChange={handleStatusChange} displayEmpty>
+          <Select
+            value={formDataUpdate?.status_id || ''}
+            onChange={handleInputChangeUpdate}
+            name="status_id"
+            displayEmpty
+          >
             <MenuItem value="" disabled>
               เลือกสถานะ
             </MenuItem>
-            {status?.map((statusItem, index) => (
+            {status?.map((statusItem) => (
               <MenuItem
-                key={index}
-                value={statusItem.status_id || ''}
+                key={statusItem.status_id}
+                value={statusItem.status_id}
                 sx={{
                   color:
                     statusItem.status_name === 'กำลังดำเนินการ'
@@ -132,13 +131,9 @@ const TakeacitonModal = ({
         </FormControl>
       </Box>
 
-      {/* Action Buttons */}
       <Box mt={2} display="flex" justifyContent="flex-end" gap={2} width="100%">
         <Button
-          onClick={() => {
-            handleSaveClick(formData);
-            window.location.reload();
-          }}
+          onClick={() => handleUpdeteClick(handleUpdeteClick)}
           variant="contained"
           color="primary"
           sx={{ width: '150px', height: '50px' }}

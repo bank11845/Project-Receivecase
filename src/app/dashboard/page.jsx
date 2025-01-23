@@ -69,17 +69,7 @@ const DashboardPage = () => {
   const handleClose = () => {
     setAnchorEl(null);
     setSelectedCase(null); // ล้างข้อมูลเมื่อเมนูปิด
-  };
-
-  const handleMenuOpen = (event, caseItem) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedCase(caseItem); // เก็บข้อมูลเคสที่เลือก
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedCase(null);
-  };
+  };  
 
   const handleNavigateToCase = () => {
     window.location.href = '/dashboard/case';
@@ -375,8 +365,8 @@ const DashboardPage = () => {
         console.log('Response from getStatus:', response);
 
         // Check if response has a body and parse it
-        if (response.body) {
-          const parsedBody = JSON.parse(response.body);
+        if (response) {
+          const parsedBody = JSON.parse(response);
 
           // Check if 'cases' is an array
           if (Array.isArray(parsedBody.cases)) {
@@ -411,8 +401,8 @@ const DashboardPage = () => {
         console.log('Response from get_employee:', response); // ตรวจสอบข้อมูลที่ได้รับ
 
         // ตรวจสอบว่า response เป็นอาร์เรย์หรือไม่
-        if (Array.isArray(response.body)) {
-          setemployee(response.body); // ถ้าเป็น Array ให้เก็บข้อมูลใน state
+        if (Array.isArray(response)) {
+          setemployee(response); // ถ้าเป็น Array ให้เก็บข้อมูลใน state
         } else {
           console.error('Expected an array, but received:', response);
           setemployee([]); // ถ้าไม่ใช่ Array ให้เก็บ array ว่าง
@@ -617,7 +607,7 @@ const DashboardPage = () => {
         console.error('Failed to fetch sub case names:', error);
       }
     };
-    
+
     fetchSubCaseNames();
   }, [baseURL]); // Add baseURL to the dependency array
 

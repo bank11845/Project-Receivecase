@@ -31,7 +31,7 @@ export function ReceiveCaseView() {
   const [levelUrgencies, setLevelUrgencies] = useState(null);
   const [employees, setEmployees] = useState(null);
   const [teams, setTeams] = useState(null);
-  const [statuses, setStatuses] = useState(null);
+  const [status, setStatus] = useState(null);
 
   const allData = async () => {
     try {
@@ -47,8 +47,12 @@ export function ReceiveCaseView() {
       setEmployees(employees);
       const teams = await get_team();
       setTeams(teams);
-      const statuses = await get_status();
-      setStatuses(statuses);
+      const status = await get_status();
+      const parseJson = JSON.parse(status);
+      console.log(parseJson.cases)
+      setStatus(parseJson.cases);
+      
+      
 
       // Optional: Log ข้อมูล
       console.log({
@@ -58,7 +62,7 @@ export function ReceiveCaseView() {
         levelUrgencies,
         employees,
         teams,
-        statuses,
+        status,
       });
     } catch (error) {
       console.log('Error fetching data in allData:', error);
@@ -99,7 +103,7 @@ export function ReceiveCaseView() {
           levelUrgencies={levelUrgencies}
           employees={employees}
           teams={teams}
-          statuses={statuses}
+          status={status}
         />
       </Box>
     </DashboardContent>

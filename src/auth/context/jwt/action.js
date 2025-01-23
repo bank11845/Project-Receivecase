@@ -11,6 +11,7 @@ import { STORAGE_KEY } from './constant';
 export const signInWithPassword = async ({ user_name, password }) => {
   try {
     const params = { user_name, password };
+    // console.log(params)
 
     const res = await axios.post(endpoints.auth.signIn, params);
     console.log(res);
