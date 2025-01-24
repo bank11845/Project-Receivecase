@@ -6,7 +6,7 @@ import { Icon } from '@iconify/react';
 import React, { useState, useEffect } from 'react';
 
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { Box, Grid, Button, MenuItem, TextField, Typography, InputAdornment } from '@mui/material';
+import { Box, Grid, Button, MenuItem, TextField, Typography, InputAdornment, Chip } from '@mui/material';
 
 import axiosInstance from 'src/utils/axios';
 import { formatDateTime } from 'src/utils/dateUtils';
@@ -424,10 +424,20 @@ const CaseDataGrid = ({
       headerAlign: 'center',
       align: 'center',
       renderCell: (params) => {
-        const color = getStatusnameColor(params.value);
-        return <span style={{ color }}>{params.value}</span>;
+        const color = getStatusnameColor(params.value); // ฟังก์ชันกำหนดสี
+        return (
+          <Chip
+            label={params.value}
+            style={{
+              backgroundColor: color,
+              color: '#fff', // ใช้สีขาวเพื่อความคมชัด
+            }}
+            size="small"
+          />
+        );
       },
     },
+    
 
     {
       field: 'employee_name',
