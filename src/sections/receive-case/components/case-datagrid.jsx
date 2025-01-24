@@ -159,11 +159,12 @@ const CaseDataGrid = ({
 
       // ตรวจสอบการตอบกลับจาก API
       if (response.data.status === 201) {
+        handleRefresh();
         alert('บันทึกข้อมูลสำเร็จ!');
       } else {
         handleRefresh();
-        alert(`ไม่สามารถบันทึกข้อมูลได้: ${response.data.message || 'ไม่ทราบสาเหตุ'}`);
         console.log(response)
+        alert(`ไม่สามารถบันทึกข้อมูลได้: ${response.data.message || 'ไม่ทราบสาเหตุ'}`);
       }
     } catch (error) {
       console.error('Error posting data:', error);
@@ -417,6 +418,18 @@ const CaseDataGrid = ({
       align: 'center',
     },
     {
+      field: 'status_name',
+      headerName: 'สถานะ Case',
+      width: 200,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: (params) => {
+        const color = getStatusnameColor(params.value);
+        return <span style={{ color }}>{params.value}</span>;
+      },
+    },
+
+    {
       field: 'employee_name',
       headerName: 'ผู้แจ้ง Case',
       width: 200,
@@ -443,7 +456,7 @@ const CaseDataGrid = ({
         // eslint-disable-next-line no-shadow
         const employee = employees.find((emp) => Number(emp.employee_id) === empId);
 
-        console.log('Matched employee:', employee);
+        // console.log('Matched employee:', employee);
 
         return employee ? employee.employee_name : 'Unknown';
       },
@@ -468,8 +481,7 @@ const CaseDataGrid = ({
       field: 'details',
       headerName: 'รายละเอียด',
       width: 200,
-      headerAlign: 'center',
-      align: 'center',
+   
     },
     {
       field: 'correct',
@@ -491,18 +503,7 @@ const CaseDataGrid = ({
     },
     { field: 'team_name', headerName: 'ทีม', width: 200, headerAlign: 'center', align: 'center' },
 
-    {
-      field: 'status_name',
-      headerName: 'สถานะ Case',
-      width: 200,
-      headerAlign: 'center',
-      align: 'center',
-      renderCell: (params) => {
-        const color = getStatusnameColor(params.value);
-        return <span style={{ color }}>{params.value}</span>;
-      },
-    },
-
+   
     {
       field: 'create_date',
       headerName: 'วันที่รับแจ้ง',
