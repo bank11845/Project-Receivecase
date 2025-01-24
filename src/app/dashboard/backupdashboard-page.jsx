@@ -42,7 +42,7 @@ import axios from 'axios';
 
 import { CONFIG } from 'src/config-global';
 
-const DashboardPage = () => {
+const DashboardPage-test = () => {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -1303,4 +1303,4 @@ const DashboardPage = () => {
   );
 };
 
-export default DashboardPage;
+export default DashboardPage-test;

@@ -9,6 +9,8 @@ import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { Box, Grid, Button, MenuItem, TextField, Typography, InputAdornment } from '@mui/material';
 
 import axiosInstance from 'src/utils/axios';
+import { formatDateTime } from 'src/utils/dateUtils';
+// eslint-disable-next-line perfectionist/sort-imports
 
 import { CONFIG } from 'src/config-global';
 
@@ -161,6 +163,7 @@ const CaseDataGrid = ({
       } else {
         handleRefresh();
         alert(`ไม่สามารถบันทึกข้อมูลได้: ${response.data.message || 'ไม่ทราบสาเหตุ'}`);
+        console.log(response)
       }
     } catch (error) {
       console.error('Error posting data:', error);
@@ -445,13 +448,7 @@ const CaseDataGrid = ({
         return employee ? employee.employee_name : 'Unknown';
       },
     },
-    {
-      field: 'create_date',
-      headerName: 'วันที่แจ้ง',
-      width: 150,
-      headerAlign: 'center',
-      align: 'center',
-    },
+
     {
       field: 'main_case_name',
       headerName: 'สาเหตุหลัก',
@@ -507,18 +504,23 @@ const CaseDataGrid = ({
     },
 
     {
-      field: 'start_date',
-      headerName: 'วันที่เริ่มดำเนินการ',
+      field: 'create_date',
+      headerName: 'วันที่รับแจ้ง',
       width: 200,
-      headerAlign: 'center',
-      align: 'center',
+      renderCell: (params) => formatDateTime(params.row?.create_date),
+    },
+
+    {
+      field: 'start_date',
+      headerName: 'วันที่ดำเนินการ',
+      width: 200,
+      renderCell: (params) => formatDateTime(params.row?.start_date),
     },
     {
       field: 'end_date',
-      headerName: 'วันที่ดำเนินการเสร็จสิ้น',
-      width: 150,
-      headerAlign: 'center',
-      align: 'center',
+      headerName: 'วันที่ดำเนินการสำเร็จ',
+      width: 200,
+      renderCell: (params) => formatDateTime(params.row?.end_date),
     },
   ];
 
