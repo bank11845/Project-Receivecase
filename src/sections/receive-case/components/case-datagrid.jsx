@@ -6,7 +6,16 @@ import { Icon } from '@iconify/react';
 import React, { useState, useEffect } from 'react';
 
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { Box, Grid, Button, MenuItem, TextField, Typography, InputAdornment, Chip } from '@mui/material';
+import {
+  Box,
+  Grid,
+  Button,
+  MenuItem,
+  TextField,
+  Typography,
+  InputAdornment,
+  Chip,
+} from '@mui/material';
 
 import axiosInstance from 'src/utils/axios';
 import { formatDateTime } from 'src/utils/dateUtils';
@@ -46,6 +55,7 @@ const CaseDataGrid = ({
   const files = [];
 
   console.log(status);
+  console.log(mainCases);
 
   const handleFileChange = (event) => {
     const uploadedFiles = Array.from(event.target.files);
@@ -163,7 +173,7 @@ const CaseDataGrid = ({
         alert('บันทึกข้อมูลสำเร็จ!');
       } else {
         handleRefresh();
-        console.log(response)
+        console.log(response);
         alert(`ไม่สามารถบันทึกข้อมูลได้: ${response.data.message || 'ไม่ทราบสาเหตุ'}`);
       }
     } catch (error) {
@@ -437,7 +447,6 @@ const CaseDataGrid = ({
         );
       },
     },
-    
 
     {
       field: 'employee_name',
@@ -491,7 +500,6 @@ const CaseDataGrid = ({
       field: 'details',
       headerName: 'รายละเอียด',
       width: 200,
-   
     },
     {
       field: 'correct',
@@ -513,7 +521,6 @@ const CaseDataGrid = ({
     },
     { field: 'team_name', headerName: 'ทีม', width: 200, headerAlign: 'center', align: 'center' },
 
-   
     {
       field: 'create_date',
       headerName: 'วันที่รับแจ้ง',
@@ -564,10 +571,17 @@ const CaseDataGrid = ({
       if (endDate && new Date(row.create_date) > new Date(endDate)) return false;
 
       // Filter by mainCaseId
-      if (mainCaseId && row.main_case_id !== mainCaseId) return false;
+      if (mainCaseId && row.main_case_name !== mainCaseId) return false;
 
       // Filter by search (problem or details)
-      if (search && !row.problem.toLowerCase().includes(search.toLowerCase())) return false;
+      if (
+        search &&
+        !Object.values(row).some(
+          (value) => value && value.toString().toLowerCase().includes(search.toLowerCase())
+        )
+      ) {
+        return false;
+      }
 
       return true;
     });
@@ -609,21 +623,16 @@ const CaseDataGrid = ({
             select
             label="Main Case"
             name="mainCaseId"
-            value={filters.mainCaseId}
+            value={filters.mainCaseId || ''}
             onChange={handleFilterChange}
             fullWidth
           >
             <MenuItem value="">All</MenuItem>
-            {mockupData
-              .filter(
-                (item, index, self) =>
-                  index === self.findIndex((i) => i.main_case_id === item.main_case_id)
-              )
-              .map((uniqueItem) => (
-                <MenuItem key={uniqueItem?.main_case_id} value={uniqueItem?.main_case_id}>
-                  {uniqueItem?.main_case_name}
-                </MenuItem>
-              ))}
+            {mainCases?.map((uniqueItem) => (
+              <MenuItem key={uniqueItem.main_case_id} value={uniqueItem.main_case_name}>
+                {uniqueItem.main_case_name}
+              </MenuItem>
+            ))}
           </TextField>
         </Grid>
         <Grid
@@ -680,7 +689,7 @@ const CaseDataGrid = ({
       {/* DataGrid */}
       <Box height="600px">
         <DataGrid
-          rows={rows || []}
+          rows={filteredRows || []}
           columns={columns || []}
           pagination
           pageSize={10}

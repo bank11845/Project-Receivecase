@@ -44,7 +44,7 @@ export const paths = {
   dashboard: {
     root: ROOTS.DASHBOARD,
     addCase: `${ROOTS.DASHBOARD}/dashboard/add-case`,
-    two: `${ROOTS.DASHBOARD}/two`,
+    two: `${ROOTS.DASHBOARD}/history`,
     three: `${ROOTS.DASHBOARD}/three`,
 
     group: {
