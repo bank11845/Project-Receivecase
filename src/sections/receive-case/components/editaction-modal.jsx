@@ -33,7 +33,7 @@ const EditactionModal = ({
   formDataUpdateEdit,
   handleFileChange,
   handleRemoveFile,
-  handlePostData,
+  
 }) => (
   <Modal open={open} onClose={handleClose}>
     <Box

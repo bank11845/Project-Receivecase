@@ -73,7 +73,7 @@ export default function CaseTable({ cases, totalPages, setCurrentPage }) {
     
     
         if (!Array.isArray(employees)) {
-          return 'Unknown';
+          return 'ยังไม่มีผู้เข้าดำเนินการ';
         }
     
         // แปลงเป็นตัวเลขเพื่อป้องกันความคลาดเคลื่อนของประเภทข้อมูล

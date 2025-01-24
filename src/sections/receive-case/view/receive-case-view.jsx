@@ -76,7 +76,6 @@ export function ReceiveCaseView() {
     const fetchReceiveCase = async () => {
       try {
         if (ReceivecaseError) {
-          alert('Error Please Try Again!!');
           return;
         }
 

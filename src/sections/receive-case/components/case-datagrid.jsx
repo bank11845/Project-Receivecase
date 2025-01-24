@@ -41,6 +41,7 @@ const CaseDataGrid = ({
   employees,
   status,
   handleRefresh,
+  handleCloseModal
 }) => {
   const [rows, setRows] = useState([]);
   const [filteredRows, setFilteredRows] = useState([]);
@@ -56,8 +57,7 @@ const CaseDataGrid = ({
   const team = teams;
   const files = [];
 
-  console.log(status);
-  console.log(mainCases);
+ 
 
   const handleFileChange = (event) => {
     const uploadedFiles = Array.from(event.target.files);
@@ -85,6 +85,8 @@ const CaseDataGrid = ({
   const baseURL = CONFIG.site.serverUrl;
 
   // AddCase ---------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+ 
   const [formData, setFormData] = useState({
     receive_case_id: '',
 
@@ -114,26 +116,33 @@ const CaseDataGrid = ({
     }));
   };
 
-  const resetData  = (e) => {setFormData({
-    receive_case_id: '',
+  const resetData = (e) => {
+    setFormData({
+      receive_case_id: '',
 
-    create_date: new Date().toISOString(),
-    branch_id: null,
-    sub_case_id: [],
-    urgent_level_id: null,
-    employee_id: null,
-    team_id: null,
-    main_case_id: null,
-    problem: '',
-    details: '',
-    status_id: 1,
-    img_id: [],
-    saev_em: '',
-    correct: '',
-    start_date: null,
-    end_date: null,
-    files: [],
-  })};
+      create_date: new Date().toISOString(),
+      branch_id: null,
+      sub_case_id: [],
+      urgent_level_id: null,
+      employee_id: null,
+      team_id: null,
+      main_case_id: null,
+      problem: '',
+      details: '',
+      status_id: 1,
+      img_id: [],
+      saev_em: '',
+      correct: '',
+      start_date: null,
+      end_date: null,
+      files: [],
+    });
+  };
+
+  const handleCancel = () => {
+    handleCloseModal();
+  };
+
 
   const handlePostData = async () => {
     const formDataToSend = new FormData();
@@ -231,6 +240,9 @@ const CaseDataGrid = ({
     end_date: null,
   });
 
+
+  // ฟังชั่น อัพเดท ข้อมูล เข้าดำเนินการ
+
   const handleInputChangeUpdate = (event) => {
     const { name, value } = event.target;
 
@@ -292,7 +304,7 @@ const CaseDataGrid = ({
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
   };
-  // เข้าดำเนินการ-------------------------------------------------------------------------------------------------------------------------------
+  //-------------------------------------------------------------------------------------------------------------------------------
 
   const [combinedSubCaseNames, setCombinedSubCaseNames] = useState('');
 
@@ -319,10 +331,11 @@ const CaseDataGrid = ({
     setFormDataUpdateEdit({ ...row });
     setOpenEditactionModal(true); // เปิด Modal
   };
+
   const handleEditCaseClick = async (caseItem) => {
     try {
       // เรียกข้อมูล sub_case_names ที่ตรงกับ receive_case_id
-      const response = await axios.get(`${baseURL}/sub_casejoin`);
+      const response = await axios.get(`${baseURL}/receive-case`);
       // let combinedSubCaseNames = '';
 
       if (response.status === 200) {
@@ -531,11 +544,10 @@ const CaseDataGrid = ({
       headerName: 'พนักงานเข้าดำเนินการ',
       width: 200,
       renderCell: (params) => {
-        console.log('saev_em value:', params.row?.saev_em);
-        console.log('Employee list:', employees);
+    
 
         if (!Array.isArray(employees)) {
-          return 'Unknown';
+          return 'ยังไม่มีผู้เข้าดำเนินการ';
         }
 
         // แปลงเป็นตัวเลขเพื่อป้องกันความคลาดเคลื่อนของประเภทข้อมูล
@@ -547,7 +559,7 @@ const CaseDataGrid = ({
 
         // console.log('Matched employee:', employee);
 
-        return employee ? employee.employee_name : 'Unknown';
+        return employee ? employee.employee_name : 'ยังไม่มีผู้เข้าดำเนินการ';
       },
     },
 
@@ -810,6 +822,7 @@ const CaseDataGrid = ({
         branchs={branchs}
         files={formData.files || []} // ส่งไฟล์จาก formData
         handleInputChange={handleInputChange}
+        formDataUpdateEdit={formDataUpdateEdit}
         setFormData={setFormData}
         formData={formData}
         handleFileChange={handleFileChange}

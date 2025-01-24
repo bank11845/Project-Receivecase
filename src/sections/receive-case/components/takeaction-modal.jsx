@@ -20,7 +20,7 @@ const TakeacitonModal = ({
   formDataUpdate,
   handleInputChangeUpdate,
   handleUpdeteClick,
-  handleCancel,
+ 
 }) => (
   <Modal open={open} onClose={handleClose}>
     <Box p={3} bgcolor="background.paper" maxWidth={600} mx="auto" mt={4} borderRadius={2}>
@@ -40,14 +40,27 @@ const TakeacitonModal = ({
       </Box>
 
       <Box mt={2}>
+     
         <TextField
           fullWidth
-          label="เลือกวันที่เข้าดำเนินการ"
+          label="วันที่เเจง Case"
           type="datetime-local"
           InputLabelProps={{ shrink: true }}
           name="start_date"
           value={formDataUpdate?.start_date || ''}
           onChange={handleInputChangeUpdate}
+          inputProps={{
+            step: 60, // Allows minute-level selection without seconds
+          }}
+          sx={{
+            '& .MuiInputBase-input': {
+              fontSize: '16px', // Adjust font size for better visibility
+              fontFamily: 'Roboto, sans-serif',
+            },
+            '& .MuiInputLabel-root': {
+              fontSize: '14px',
+            },
+          }}
         />
       </Box>
 
@@ -147,7 +160,7 @@ const TakeacitonModal = ({
           บันทึก
         </Button>
         <Button
-          onClick={handleCancel}
+          onClick={handleClose}
           color="grey"
           sx={{
             backgroundColor: '#B0B0B0',
