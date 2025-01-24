@@ -43,7 +43,7 @@ const TakeacitonModal = ({
         <TextField
           fullWidth
           label="เลือกวันที่เข้าดำเนินการ"
-          type="date"
+          type="datetime-local"
           InputLabelProps={{ shrink: true }}
           name="start_date"
           value={formDataUpdate?.start_date || ''}

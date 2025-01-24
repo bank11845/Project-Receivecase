@@ -203,7 +203,7 @@ const AddCaseModal = ({
                   <TextField
                     value={formData.create_date}
                     name="create_date"
-                    type="date"
+                    type="datetime-local"
                     label="วันที่รับ case"
                     InputLabelProps={{
                       shrink: true,
@@ -212,6 +212,7 @@ const AddCaseModal = ({
                     fullWidth
                   />
                 </Grid>
+
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
