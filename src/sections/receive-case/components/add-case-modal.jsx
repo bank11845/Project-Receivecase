@@ -34,6 +34,7 @@ const AddCaseModal = ({
   handleFileChange,
   handleRemoveFile,
   handlePostData,
+  resetData,
 }) => (
   <Modal open={open} onClose={handleClose}>
     <Box
@@ -345,7 +346,9 @@ const AddCaseModal = ({
               variant="contained"
               color="primary"
               onClick={() => {
+                
                 handlePostData(); // เรียก API
+                resetData()  
                 handleClose(); // ปิด Modal
               }}
             >

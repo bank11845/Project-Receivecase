@@ -21,10 +21,13 @@ import axiosInstance from 'src/utils/axios';
 import { formatDateTime } from 'src/utils/dateUtils';
 // eslint-disable-next-line perfectionist/sort-imports
 
+import axios from 'axios';
+
 import { CONFIG } from 'src/config-global';
 
 import AddCaseModal from './add-case-modal';
 import TakeacitonModal from './takeaction-modal';
+import EditactionModal from './editaction-modal';
 
 const CaseDataGrid = ({
   Case,
@@ -43,7 +46,7 @@ const CaseDataGrid = ({
   const [filteredRows, setFilteredRows] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [openTakeAction, setOpenTakeAction] = useState(false);
-  // const [formData, setFormData] = useState({});
+  const [openEditactionModal, setOpenEditactionModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const mainCases = mainCase;
   const subcasedata = subCaseData;
@@ -110,6 +113,27 @@ const CaseDataGrid = ({
       [name]: value,
     }));
   };
+
+  const resetData  = (e) => {setFormData({
+    receive_case_id: '',
+
+    create_date: new Date().toISOString(),
+    branch_id: null,
+    sub_case_id: [],
+    urgent_level_id: null,
+    employee_id: null,
+    team_id: null,
+    main_case_id: null,
+    problem: '',
+    details: '',
+    status_id: 1,
+    img_id: [],
+    saev_em: '',
+    correct: '',
+    start_date: null,
+    end_date: null,
+    files: [],
+  })};
 
   const handlePostData = async () => {
     const formDataToSend = new FormData();
@@ -191,7 +215,6 @@ const CaseDataGrid = ({
 
   // ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-  const [anchorEl, setAnchorEl] = useState(null); // สำหรับเก็บตำแหน่งของเมนู
   const handleOpenModal = (row) => {
     setFormDataUpdate({ ...row }); // เซ็ต selectedRow ลงใน formDataUpdate
     setOpenTakeAction(true); // เปิด Modal
@@ -218,7 +241,7 @@ const CaseDataGrid = ({
       if (selectedEmployee) {
         setFormDataUpdate((prevState) => ({
           ...prevState,
-          [name]: selectedEmployee.employee_id, // เก็บ employee_id แทนชื่อพนักงาน
+          [name]: selectedEmployee.employee_id,
         }));
       }
     } else {
@@ -269,44 +292,71 @@ const CaseDataGrid = ({
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
   };
+  // เข้าดำเนินการ-------------------------------------------------------------------------------------------------------------------------------
 
-  // const handleEditClick = (caseItem) => {
-  //   // เรียกข้อมูล sub_case_names ที่ตรงกับ receive_case_id
-  //   const fetchSubCaseNames = async () => {
-  //     // Remove caseItem parameter here
-  //     try {
-  //       const response = await axios.get(`${baseURL}/sub_casejoin`);
-  //       if (response.status === 200) {
-  //         // สมมติว่า API ส่งข้อมูลตาม caseItem.receive_case_id
-  //         const selectedCase = response.data.body.find(
-  //           (item) => item.receive_case_id === caseItem.receive_case_id // Access caseItem directly here
-  //         );
-  //         if (selectedCase) {
-  //           setCombinedSubCaseNames(selectedCase.combined_sub_case_names || '');
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Failed to fetch sub case names:', error);
-  //     }
-  //   };
+  const [combinedSubCaseNames, setCombinedSubCaseNames] = useState('');
 
-  //   // เรียก fetchSubCaseNames และตั้งค่า state ของ formData
-  //   fetchSubCaseNames(); // Call it without passing caseItem here
+  const [formDataUpdateEdit, setFormDataUpdateEdit] = useState({
+    receive_case_id: '',
+    caseDate: '',
+    correct: '',
+    status_id: '',
+    problem: '',
+    details: '',
+    selectedMainCase: '',
+    selectedcombinedSubCaseNames: '',
+    selectedLevelUrgent: '',
+    selectedEmployee: '',
+    selectedTeam: '',
+    selectedBranch: '',
+    create_date: '',
+    files: [],
+    employee_id: '',
+    save_em: '2',
+  });
 
-  //   setFormData({
-  //     receive_case_id: caseItem.receive_case_id,
-  //     selectedMainCaseName: caseItem.main_case_name,
-  //     selectedEmployee: caseItem.employee_name,
-  //     selectedTeam: caseItem.team_name,
-  //     create_date: caseItem.create_date,
-  //     problem: caseItem.problem,
-  //     details: caseItem.details,
-  //     selectedBranch: caseItem.branch_name,
-  //     files: caseItem.files || [],
-  //     selectedLevelUrgent: caseItem.level_urgent_name,
-  //   });
+  const handleOpenEditCaseModal = (row) => {
+    setFormDataUpdateEdit({ ...row });
+    setOpenEditactionModal(true); // เปิด Modal
+  };
+  const handleEditCaseClick = async (caseItem) => {
+    try {
+      // เรียกข้อมูล sub_case_names ที่ตรงกับ receive_case_id
+      const response = await axios.get(`${baseURL}/sub_casejoin`);
+      // let combinedSubCaseNames = '';
 
-  // };
+      if (response.status === 200) {
+        const selectedCase = response.data.body.find(
+          (item) => item.receive_case_id === caseItem.receive_case_id
+        );
+        if (selectedCase) {
+          // combinedSubCaseNames = selectedCase.combined_sub_case_names || '';
+        }
+      }
+
+      // ตั้งค่า formDataUpdateEdit ด้วยข้อมูลที่มีอยู่
+      setFormDataUpdateEdit({
+        receive_case_id: caseItem.receive_case_id || '',
+        caseDate: caseItem.caseDate || '', // ดึงจาก caseItem ถ้ามี
+        correct: caseItem.correct || '', // ดึงจาก caseItem ถ้ามี
+        status_id: caseItem.status_id || '', // ดึงจาก caseItem ถ้ามี
+        problem: caseItem.problem || '',
+        details: caseItem.details || '',
+        selectedMainCase: caseItem.main_case_name || '',
+        selectedcombinedSubCaseNames: combinedSubCaseNames, // ใช้ค่าที่ได้จาก API
+        selectedLevelUrgent: caseItem.level_urgent_name || '',
+        selectedEmployee: caseItem.employee_name || '',
+        selectedTeam: caseItem.team_name || '',
+        selectedBranch: caseItem.branch_name || '',
+        create_date: caseItem.create_date || '',
+        files: caseItem.files || [],
+        employee_id: caseItem.employee_id || '', // สามารถกำหนดค่าให้เปลี่ยนได้
+        save_em: '2', // ค่าคงที่
+      });
+    } catch (error) {
+      console.error('Failed to fetch sub case names or set form data:', error);
+    }
+  };
 
   const [filters, setFilters] = useState({
     startDate: '',
@@ -314,32 +364,6 @@ const CaseDataGrid = ({
     mainCaseId: '',
     search: '',
   });
-
-  const getUrgentLevelColor = (levelName) => {
-    switch (levelName) {
-      case 'เร่งด่วน':
-        return 'red'; // สีแดงสำหรับความเร่งด่วนสูง
-      case 'ปานกลาง':
-        return 'orange'; // สีส้มสำหรับความเร่งด่วนปานกลาง
-      case 'ไม่เร่งด่วน':
-        return 'green'; // สีเขียวสำหรับความเร่งด่วนต่ำ
-      default:
-        return 'black'; // สีดำสำหรับค่าอื่น ๆ
-    }
-  };
-
-  const getStatusnameColor = (levelName) => {
-    switch (levelName) {
-      case 'ดำเนินการเสร็จสิ้น':
-        return 'green'; // สีแดงสำหรับความเร่งด่วนสูง
-      case 'กำลังดำเนินการ':
-        return 'orange'; // สีส้มสำหรับความเร่งด่วนปานกลาง
-      case 'รอดำเนินการ':
-        return 'black'; // สีเขียวสำหรับความเร่งด่วนต่ำ
-      default:
-        return 'black'; // สีดำสำหรับค่าอื่น ๆ
-    }
-  };
 
   // eslint-disable-next-line no-shadow
   const exportToExcelUTF8 = (rows, columns) => {
@@ -366,6 +390,33 @@ const CaseDataGrid = ({
     saveAs(dataBlob, 'ข้อมูลภาษาไทย.xlsx');
   };
 
+  //----------------------------------------------------------------------------------------------
+
+  const getUrgentLevelColor = (levelName) => {
+    switch (levelName) {
+      case 'เร่งด่วน':
+        return 'red';
+      case 'ปานกลาง':
+        return 'orange';
+      case 'ไม่เร่งด่วน':
+        return '#76ff03';
+      default:
+        return 'black';
+    }
+  };
+
+  const getStatusnameColor = (levelName) => {
+    switch (levelName) {
+      case 'ดำเนินการเสร็จสิ้น':
+        return 'green';
+      case 'กำลังดำเนินการ':
+        return 'orange';
+      case 'รอดำเนินการ':
+        return 'black';
+      default:
+        return 'black';
+    }
+  };
   const columns = [
     {
       field: 'actions',
@@ -410,6 +461,7 @@ const CaseDataGrid = ({
               },
             }}
             onClick={() => {
+              handleOpenEditCaseModal();
               // handleEdit(params.row); // ฟังก์ชันสำหรับการแก้ไขข้อมูล
             }}
           >
@@ -448,13 +500,32 @@ const CaseDataGrid = ({
     },
 
     {
+      field: 'level_urgent_name',
+      headerName: 'ความเร่งด่วน',
+      width: 150,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: (params) => {
+        const color = getUrgentLevelColor(params.value); // ฟังก์ชันกำหนดสี
+        return (
+          <Chip
+            label={params.value}
+            style={{
+              backgroundColor: color,
+              color: '#fff', // สีข้อความให้ตรงกับความคมชัด
+            }}
+            size="small"
+          />
+        );
+      },
+    },
+    {
       field: 'employee_name',
       headerName: 'ผู้แจ้ง Case',
       width: 200,
       headerAlign: 'center',
       align: 'center',
     },
-
     {
       field: 'saev_em',
       headerName: 'พนักงานเข้าดำเนินการ',
@@ -507,17 +578,7 @@ const CaseDataGrid = ({
       headerAlign: 'center',
       align: 'center',
     },
-    {
-      field: 'level_urgent_name',
-      headerName: 'ความเร่งด่วน',
-      width: 150,
-      headerAlign: 'center',
-      align: 'center',
-      renderCell: (params) => {
-        const color = getUrgentLevelColor(params.value);
-        return <span style={{ color }}>{params.value}</span>;
-      },
-    },
+
     { field: 'team_name', headerName: 'ทีม', width: 200, headerAlign: 'center', align: 'center' },
 
     {
@@ -721,6 +782,7 @@ const CaseDataGrid = ({
         handleFileChange={handleFileChange}
         handleRemoveFile={handleRemoveFile}
         handlePostData={handlePostData}
+        resetData={resetData}
       />
 
       <TakeacitonModal
@@ -735,6 +797,25 @@ const CaseDataGrid = ({
         setFormData={setFormData}
         selectedCase
         handleUpdeteClick={handleUpdeteClick} // ส่งฟังก์ชันนี้ไป
+      />
+
+      <EditactionModal
+        open={openEditactionModal}
+        handleClose={() => setOpenEditactionModal(false)}
+        mainCases={mainCases}
+        subcasedata={subcasedata}
+        levelurgent={levelurgent}
+        employee={employee}
+        team={team}
+        branchs={branchs}
+        files={formData.files || []} // ส่งไฟล์จาก formData
+        handleInputChange={handleInputChange}
+        setFormData={setFormData}
+        formData={formData}
+        handleFileChange={handleFileChange}
+        handleRemoveFile={handleRemoveFile}
+        handlePostData={handlePostData}
+        handleEditCaseClick={handleEditCaseClick}
       />
     </Box>
   );

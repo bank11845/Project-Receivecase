@@ -53,21 +53,20 @@ export function ReceiveCaseView() {
       setTeams(teams);
       const status = await get_status();
       const parseJson = JSON.parse(status);
-      console.log(parseJson.cases)
       setStatus(parseJson.cases);
       
       
 
       // Optional: Log ข้อมูล
-      console.log({
-        mainCase,
-        subCaseData,
-        branchs,
-        levelUrgencies,
-        employees,
-        teams,
-        status,
-      });
+      // console.log({
+      //   mainCase,
+      //   subCaseData,
+      //   branchs,
+      //   levelUrgencies,
+      //   employees,
+      //   teams,
+      //   status,
+      // });
     } catch (error) {
       console.log('Error fetching data in allData:', error);
     }

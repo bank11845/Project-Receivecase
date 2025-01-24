@@ -70,8 +70,7 @@ export default function CaseTable({ cases, totalPages, setCurrentPage }) {
       headerName: 'พนักงานเข้าดำเนินการ',
       width: 200,
       renderCell: (params) => {
-        console.log('saev_em value:', params.row?.saev_em);
-        console.log('Employee list:', employees);
+    
     
         if (!Array.isArray(employees)) {
           return 'Unknown';

@@ -18,7 +18,6 @@
     const url = endpoints.dashboard.receivecaseJoin;
 
     const { data, isLoading, error, isValidating, mutate  } = useSWR(url, fetcher, swrOptions);
-    console.log(data)
     const memoizedValue = useMemo(
       () => ({
         Receivecase: data || [],

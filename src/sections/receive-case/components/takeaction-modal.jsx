@@ -123,6 +123,11 @@ const TakeacitonModal = ({
                         ? 'normal'
                         : 'inherit',
                 }}
+                onClick={() =>
+                  handleInputChangeUpdate({
+                    target: { name: 'status', value: statusItem.status_name },
+                  })
+                }
               >
                 {statusItem.status_name}
               </MenuItem>
