@@ -1,6 +1,7 @@
 // components/YearSelector.jsx
 import React from 'react';
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+
+import { Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 
 export default function YearSelector({ selectedYear, setSelectedYear }) {
   return (

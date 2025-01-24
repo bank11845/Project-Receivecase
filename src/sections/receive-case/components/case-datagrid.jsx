@@ -9,12 +9,12 @@ import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import {
   Box,
   Grid,
+  Chip,
   Button,
   MenuItem,
   TextField,
   Typography,
   InputAdornment,
-  Chip,
 } from '@mui/material';
 
 import axiosInstance from 'src/utils/axios';
@@ -23,7 +23,6 @@ import { formatDateTime } from 'src/utils/dateUtils';
 
 import { CONFIG } from 'src/config-global';
 
-import mockupData from './mockupData.json';
 import AddCaseModal from './add-case-modal';
 import TakeacitonModal from './takeaction-modal';
 

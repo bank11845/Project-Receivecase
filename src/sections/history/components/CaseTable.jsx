@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+
 import { DataGrid } from '@mui/x-data-grid';
+
 import { formatDateTime } from '../../../utils/dateUtils';
 
 export default function CaseTable({ cases, totalPages, setCurrentPage }) {

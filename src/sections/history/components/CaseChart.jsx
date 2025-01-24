@@ -1,7 +1,9 @@
+/* eslint-disable import/no-extraneous-dependencies */
 // components/CaseChart.jsx
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { CircularProgress, Box, Typography } from '@mui/material';
+import { Bar, XAxis, YAxis, Tooltip, BarChart, ResponsiveContainer } from 'recharts';
+
+import { Box, Typography, CircularProgress } from '@mui/material';
 
 export default function CaseChart({ chartData, loading }) {
   return (
