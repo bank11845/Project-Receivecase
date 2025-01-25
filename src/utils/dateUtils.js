@@ -1,5 +1,5 @@
 export const formatDateTime = (dateString) => {
-  if (!dateString) return 'ไม่ระบุ';
+  if (!dateString) return 'ยังไม่มีข้อมูลการเข้าเดินการ';
   
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return 'ข้อมูลผิดพลาด';

@@ -41,7 +41,7 @@ const CaseDataGrid = ({
   employees,
   status,
   handleRefresh,
-  handleCloseModal
+  handleCloseModal,
 }) => {
   const [rows, setRows] = useState([]);
   const [filteredRows, setFilteredRows] = useState([]);
@@ -56,8 +56,6 @@ const CaseDataGrid = ({
 
   const team = teams;
   const files = [];
-
- 
 
   const handleFileChange = (event) => {
     const uploadedFiles = Array.from(event.target.files);
@@ -85,8 +83,7 @@ const CaseDataGrid = ({
   const baseURL = CONFIG.site.serverUrl;
 
   // AddCase ---------------------------------------------------------------------------------------------------------------------------------------------------
- 
- 
+
   const [formData, setFormData] = useState({
     receive_case_id: '',
 
@@ -142,7 +139,6 @@ const CaseDataGrid = ({
   const handleCancel = () => {
     handleCloseModal();
   };
-
 
   const handlePostData = async () => {
     const formDataToSend = new FormData();
@@ -240,7 +236,6 @@ const CaseDataGrid = ({
     end_date: null,
   });
 
-
   // ฟังชั่น อัพเดท ข้อมูล เข้าดำเนินการ
 
   const handleInputChangeUpdate = (event) => {
@@ -310,24 +305,27 @@ const CaseDataGrid = ({
 
   const [formDataUpdateEdit, setFormDataUpdateEdit] = useState({
     receive_case_id: '',
-    caseDate: '',
-    correct: '',
-    status_id: '',
+
+    create_date: new Date().toISOString(),
+    branch_id: null,
+    sub_case_id: [],
+    urgent_level_id: null,
+    employee_id: null,
+    team_id: null,
+    main_case_id: null,
     problem: '',
     details: '',
-    selectedMainCase: '',
-    selectedcombinedSubCaseNames: '',
-    selectedLevelUrgent: '',
-    selectedEmployee: '',
-    selectedTeam: '',
-    selectedBranch: '',
-    create_date: '',
+    status_id: 1,
+    img_id: [],
+    saev_em: '',
+    correct: '',
+    start_date: null,
+    end_date: null,
     files: [],
-    employee_id: '',
-    save_em: '2',
   });
 
   const handleOpenEditCaseModal = (row) => {
+    console.log(row)
     setFormDataUpdateEdit({ ...row });
     setOpenEditactionModal(true); // เปิด Modal
   };
@@ -474,7 +472,7 @@ const CaseDataGrid = ({
               },
             }}
             onClick={() => {
-              handleOpenEditCaseModal();
+              handleOpenEditCaseModal(params.row);
               // handleEdit(params.row); // ฟังก์ชันสำหรับการแก้ไขข้อมูล
             }}
           >
@@ -544,8 +542,6 @@ const CaseDataGrid = ({
       headerName: 'พนักงานเข้าดำเนินการ',
       width: 200,
       renderCell: (params) => {
-    
-
         if (!Array.isArray(employees)) {
           return 'ยังไม่มีผู้เข้าดำเนินการ';
         }
@@ -589,6 +585,18 @@ const CaseDataGrid = ({
       width: 200,
       headerAlign: 'center',
       align: 'center',
+      renderCell: (params) => {
+        // Check if the 'correct' field is empty or undefined
+        const correctValue = params.row?.correct;
+
+        // If there's no update, show the fallback message
+        if (!correctValue) {
+          return 'ยังไม่มีการเเก้ไขปัญหา'; // Message for empty or undefined 'correct' field
+        }
+
+        // Otherwise, return the value of 'correct'
+        return correctValue;
+      },
     },
 
     { field: 'team_name', headerName: 'ทีม', width: 200, headerAlign: 'center', align: 'center' },

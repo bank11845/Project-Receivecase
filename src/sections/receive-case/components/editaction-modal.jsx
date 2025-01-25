@@ -33,7 +33,6 @@ const EditactionModal = ({
   formDataUpdateEdit,
   handleFileChange,
   handleRemoveFile,
-  
 }) => (
   <Modal open={open} onClose={handleClose}>
     <Box
@@ -48,8 +47,8 @@ const EditactionModal = ({
         borderRadius: 2,
         boxShadow: 24,
         p: 4,
-        maxHeight: '90',
-        overflowY: 'auto', // Scroll if content overflows
+        maxHeight: '90%',
+        overflowY: 'auto',
       }}
     >
       <Typography variant="h4" gutterBottom>
@@ -71,8 +70,8 @@ const EditactionModal = ({
                       label="หมายเลขกรณี"
                       type="text"
                       name="receive_case_id"
-                      value={formDataUpdateEdit?.receive_case_id} // ดึงค่าจาก formData
-                      disabled // ทำให้ไม่สามารถแก้ไขได้
+                      value={formDataUpdateEdit?.receive_case_id}
+                      disabled
                       variant="outlined"
                     />
                   </Box>
@@ -91,7 +90,7 @@ const EditactionModal = ({
                     }}
                   >
                     {Array.isArray(mainCases) &&
-                      mainCases?.map((option, index) => (
+                      mainCases.map((option, index) => (
                         <MenuItem key={index} value={option.main_case_id}>
                           {option.main_case_name}
                         </MenuItem>
@@ -106,7 +105,6 @@ const EditactionModal = ({
                     name="sub_case_id"
                     onChange={(event) => {
                       const { value } = event.target;
-                      // ทำให้มั่นใจว่าค่าที่เลือกเป็นอาร์เรย์
                       setFormDataUpdateEdit((prev) => ({
                         ...prev,
                         sub_case_id: Array.isArray(value) ? value : value.split(','),
@@ -129,14 +127,13 @@ const EditactionModal = ({
                     {subcasedata?.map((option) => (
                       <MenuItem key={option.sub_case_id} value={option.sub_case_id}>
                         <Checkbox
-                          checked={formDataUpdateEdit?.sub_case_id?.includes(option.sub_case_id)}
+                          checked={formDataUpdateEdit.sub_case_id?.includes(option.sub_case_id)}
                         />
                         {option.sub_case_name}
                       </MenuItem>
                     ))}
                   </TextField>
                 </Grid>
-
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth variant="outlined">
                     <InputLabel shrink htmlFor="urgent_level_id">
@@ -155,7 +152,7 @@ const EditactionModal = ({
                       }}
                     >
                       {Array.isArray(levelurgent) &&
-                        levelurgent?.map((option) => (
+                        levelurgent.map((option) => (
                           <MenuItem
                             key={option.level_urgent_id}
                             value={option.level_urgent_id}
@@ -193,7 +190,6 @@ const EditactionModal = ({
                     </TextField>
                   </FormControl>
                 </Grid>
-
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <TextField
@@ -228,7 +224,6 @@ const EditactionModal = ({
                     fullWidth
                   />
                 </Grid>
-
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -314,21 +309,16 @@ const EditactionModal = ({
                       id="upload-file-input"
                       multiple
                       onChange={handleFileChange}
-                      // eslint-disable-next-line react/jsx-no-comment-textnodes
                     />
                     <label htmlFor="upload-file-input">
-                      <Button
-                        variant="contained"
-                        component="span"
-                        startIcon={<Icon icon="uil:image-upload" width="24" height="24" />}
-                      >
+                      <Button variant="contained" component="span">
                         Upload Files
                       </Button>
                     </label>
 
                     <Box mt={2} width="100%">
                       <Grid container spacing={2}>
-                        {files?.map((file, index) => (
+                        {formDataUpdateEdit.files?.map((file, index) => (
                           <Grid item key={index} xs={4}>
                             <Box
                               position="relative"
@@ -336,7 +326,7 @@ const EditactionModal = ({
                               borderRadius={2}
                               overflow="hidden"
                             >
-                              {/* แสดงตัวอย่างไฟล์ */}
+                              {/* Show file preview */}
                               <img
                                 src={URL.createObjectURL(file)}
                                 alt={`preview-${index}`}
@@ -344,10 +334,9 @@ const EditactionModal = ({
                                   width: '100%',
                                   height: '100%',
                                   objectFit: 'cover',
-                                  cursor: 'pointer',
                                 }}
                               />
-                              {/* ปุ่มลบไฟล์ */}
+                              {/* Remove file button */}
                               <Button
                                 size="small"
                                 color="secondary"
@@ -362,7 +351,7 @@ const EditactionModal = ({
                                 ✖
                               </Button>
                             </Box>
-                            {/* แสดงชื่อไฟล์ */}
+                            {/* Display file name */}
                             <Typography variant="caption" color="textSecondary" mt={1}>
                               {file.name}
                             </Typography>
@@ -380,8 +369,8 @@ const EditactionModal = ({
               variant="contained"
               color="primary"
               onClick={() => {
-                // handleEditCaseClick(); // เรียก API
-                handleClose(); // ปิด Modal
+                // Handle save action (e.g. API call)
+                handleClose(); // Close modal
               }}
             >
               บันทึก
