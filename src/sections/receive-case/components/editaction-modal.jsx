@@ -8,31 +8,28 @@ import {
   Grid,
   Modal,
   Button,
-  Select,
-  MenuItem,
-  Checkbox,
   TextField,
   Typography,
-  InputLabel,
   CardContent,
-  FormControl,
 } from '@mui/material';
 
 const EditactionModal = ({
   open,
   handleClose,
-  mainCases,
-  subcasedata,
-  levelurgent,
   employee,
-  team,
-  branchs,
   files,
   handleInputChange,
-  setFormDataUpdateEdit,
   formDataUpdateEdit,
   handleFileChange,
   handleRemoveFile,
+  handleInputEditChange,
+  handleSave,
+  mainCases,
+  subcasedata,
+  levelurgent,
+
+  team,
+  branchs,
 }) => (
   <Modal open={open} onClose={handleClose}>
     <Box
@@ -47,8 +44,8 @@ const EditactionModal = ({
         borderRadius: 2,
         boxShadow: 24,
         p: 4,
-        maxHeight: '90%',
-        overflowY: 'auto',
+        maxHeight: '90',
+        overflowY: 'auto', // Scroll if content overflows
       }}
     >
       <Typography variant="h4" gutterBottom>
@@ -70,160 +67,100 @@ const EditactionModal = ({
                       label="หมายเลขกรณี"
                       type="text"
                       name="receive_case_id"
-                      value={formDataUpdateEdit?.receive_case_id}
-                      disabled
-                      variant="outlined"
+                      value={formDataUpdateEdit?.receive_case_id || ''}
                     />
                   </Box>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    select
                     fullWidth
-                    value={formDataUpdateEdit?.selectedMainCaseName || ''}
-                    name="main_case_id"
-                    onChange={handleInputChange}
+                    value={formDataUpdateEdit?.main_case_name || ''} // ถ้าไม่มีค่าให้ใช้ ''
                     label="สาเหตุหลัก"
                     variant="outlined"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                  >
-                    {Array.isArray(mainCases) &&
-                      mainCases.map((option, index) => (
-                        <MenuItem key={index} value={option.main_case_id}>
-                          {option.main_case_name}
-                        </MenuItem>
-                      ))}
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    select
-                    fullWidth
-                    value={formDataUpdateEdit?.sub_case_id || []}
-                    name="sub_case_id"
-                    onChange={(event) => {
-                      const { value } = event.target;
-                      setFormDataUpdateEdit((prev) => ({
-                        ...prev,
-                        sub_case_id: Array.isArray(value) ? value : value.split(','),
-                      }));
-                    }}
-                    label="สาเหตุย่อย"
-                    variant="outlined"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    SelectProps={{
-                      multiple: true,
-                      renderValue: (selected) =>
-                        subcasedata
-                          .filter((option) => selected.includes(option.sub_case_id))
-                          .map((option) => option.sub_case_name)
-                          .join(', '),
-                    }}
-                  >
-                    {subcasedata?.map((option) => (
-                      <MenuItem key={option.sub_case_id} value={option.sub_case_id}>
-                        <Checkbox
-                          checked={formDataUpdateEdit.sub_case_id?.includes(option.sub_case_id)}
-                        />
-                        {option.sub_case_name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel shrink htmlFor="urgent_level_id">
-                      ระดับความเร่งด่วน
-                    </InputLabel>
-                    <Select
-                      value={formDataUpdateEdit?.urgent_level_id || ''}
-                      name="urgent_level_id"
-                      onChange={handleInputChange}
-                      label="ระดับความเร่งด่วน"
-                      id="urgent_level_id"
-                      MenuProps={{
-                        PaperProps: {
-                          sx: { maxHeight: 200, overflow: 'auto' },
-                        },
-                      }}
-                    >
-                      {Array.isArray(levelurgent) &&
-                        levelurgent.map((option) => (
-                          <MenuItem
-                            key={option.level_urgent_id}
-                            value={option.level_urgent_id}
-                            sx={{
-                              color:
-                                option.level_urgent_name === 'เร่งด่วน'
-                                  ? 'red'
-                                  : option.level_urgent_name === 'ปานกลาง'
-                                    ? 'orange'
-                                    : 'green',
-                            }}
-                          >
-                            {option.level_urgent_name}
-                          </MenuItem>
-                        ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <TextField
-                      select
-                      value={formDataUpdateEdit?.employee_id || ''}
-                      name="employee_id"
-                      onChange={handleInputChange}
-                      label="คนที่เเจ้ง"
-                      variant="outlined"
-                      InputLabelProps={{ shrink: true }}
-                    >
-                      {employee?.map((option) => (
-                        <MenuItem key={option.employee_id} value={option.employee_id}>
-                          {option.employee_name}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <TextField
-                      select
-                      value={formDataUpdateEdit?.team_id || ''}
-                      name="team_id"
-                      onChange={handleInputChange}
-                      label="ทีม"
-                      variant="outlined"
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                    >
-                      {team?.map((option) => (
-                        <MenuItem key={option.team_id} value={option.team_id}>
-                          {option.team_id} - {option.team_name}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    value={formDataUpdateEdit?.create_date}
-                    name="create_date"
-                    type="datetime-local"
-                    label="วันที่รับ case"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    onChange={handleInputChange}
-                    fullWidth
                   />
                 </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    value={formDataUpdateEdit?.combined_sub_case_names || ''} // ถ้าไม่มีค่าให้ใช้ ''
+                    label="สาเหตูย่อย"
+                    variant="outlined"
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    value={formDataUpdateEdit?.level_urgent_name || ''} // ถ้าไม่มีค่าให้ใช้ ''
+                    label="ระดับความเร่งด่วน"
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    value={formDataUpdateEdit?.employee_name || ''}
+                    label="ชื่อพนักงาน"
+                    variant="outlined"
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    value={formDataUpdateEdit?.team_name || ''} // ถ้าไม่มีค่าให้ใช้ ''
+                    label="ทีม"
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    value={
+                      formDataUpdateEdit?.create_date
+                        ? `${new Date(formDataUpdateEdit.create_date).toLocaleDateString('th-TH', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          })} เวลา ${new Date(formDataUpdateEdit.create_date).toLocaleTimeString(
+                            'th-TH',
+                            {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false, // ใช้เวลาแบบ 24 ชั่วโมง
+                            }
+                          )}`
+                        : '' // ถ้าไม่มีค่าให้แสดงเป็นค่าว่าง
+                    }
+                    label="วันที่รับ Case"
+                    variant="outlined"
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    value={
+                      formDataUpdateEdit?.end_date
+                        ? `${new Date(formDataUpdateEdit.end_date).toLocaleDateString('th-TH', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          })} เวลา ${new Date(formDataUpdateEdit.end_date).toLocaleTimeString(
+                            'th-TH',
+                            {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false, // ใช้เวลาแบบ 24 ชั่วโมง
+                            }
+                          )}`
+                        : '' // ถ้าไม่มีค่าให้แสดงเป็นค่าว่าง
+                    }
+                    label="วันที่สิ้นสุด"
+                    variant="outlined"
+                  />
+                </Grid>
+
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -238,9 +175,9 @@ const EditactionModal = ({
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    value={formDataUpdateEdit?.details || ''}
+                    value={formDataUpdateEdit?.details || ''} // แสดงค่าเดิมหากมีค่าอยู่
                     name="details"
-                    onChange={handleInputChange}
+                    onChange={handleInputEditChange} // เมื่อมีการแก้ไขจะเรียกฟังก์ชันนี้
                     label="รายละเอียด"
                     variant="outlined"
                     multiline
@@ -253,43 +190,24 @@ const EditactionModal = ({
             <Grid item xs={12} md={4}>
               <Grid container spacing={3} direction="column">
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth variant="outlined">
-                    <TextField
-                      select
-                      value={formDataUpdateEdit?.branch_id || ''}
-                      name="branch_id"
-                      onChange={handleInputChange}
-                      label="สาขา"
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                    >
-                      {branchs?.map((option) => (
-                        <MenuItem key={option.branch_id} value={option.branch_id}>
-                          {option.branch_id} - {option.branch_name}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </FormControl>
+                  <TextField
+                    fullWidth
+                    value={formDataUpdateEdit?.branch_name || ''} // ถ้าไม่มีค่าให้ใช้ ''
+                    label="สาขา"
+                    variant="outlined"
+                  />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <TextField
-                      select
-                      value={formDataUpdateEdit?.employee_id || ''}
-                      name="employee_id"
-                      onChange={handleInputChange}
-                      label="คนที่เข้าเดินการ"
-                      variant="outlined"
-                      InputLabelProps={{ shrink: true }}
-                    >
-                      {employee?.map((option) => (
-                        <MenuItem key={option.employee_id} value={option.employee_id}>
-                          {option.employee_name}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </FormControl>
+                  <TextField
+                    fullWidth
+                    value={
+                      // ค้นหาชื่อพนักงานที่ตรงกับ saev_em
+                      employee?.find((emp) => emp.employee_id === formDataUpdateEdit?.saev_em)
+                        ?.employee_name || ''
+                    } // ถ้าไม่พบชื่อพนักงานก็ให้แสดงเป็นค่าว่าง
+                    label="พนักงานที่เข้าดำเนินการ"
+                    variant="outlined"
+                  />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <Box
@@ -308,17 +226,24 @@ const EditactionModal = ({
                       style={{ display: 'none' }}
                       id="upload-file-input"
                       multiple
+                      disabled
                       onChange={handleFileChange}
+                      // eslint-disable-next-line react/jsx-no-comment-textnodes
                     />
                     <label htmlFor="upload-file-input">
-                      <Button variant="contained" component="span">
+                      <Button
+                        variant="contained"
+                        component="span"
+                        disabled
+                        startIcon={<Icon icon="uil:image-upload" width="24" height="24" />}
+                      >
                         Upload Files
                       </Button>
                     </label>
 
                     <Box mt={2} width="100%">
                       <Grid container spacing={2}>
-                        {formDataUpdateEdit.files?.map((file, index) => (
+                        {files?.map((file, index) => (
                           <Grid item key={index} xs={4}>
                             <Box
                               position="relative"
@@ -326,7 +251,7 @@ const EditactionModal = ({
                               borderRadius={2}
                               overflow="hidden"
                             >
-                              {/* Show file preview */}
+                              {/* แสดงตัวอย่างไฟล์ */}
                               <img
                                 src={URL.createObjectURL(file)}
                                 alt={`preview-${index}`}
@@ -334,9 +259,10 @@ const EditactionModal = ({
                                   width: '100%',
                                   height: '100%',
                                   objectFit: 'cover',
+                                  cursor: 'pointer',
                                 }}
                               />
-                              {/* Remove file button */}
+                              {/* ปุ่มลบไฟล์ */}
                               <Button
                                 size="small"
                                 color="secondary"
@@ -351,7 +277,7 @@ const EditactionModal = ({
                                 ✖
                               </Button>
                             </Box>
-                            {/* Display file name */}
+                            {/* แสดงชื่อไฟล์ */}
                             <Typography variant="caption" color="textSecondary" mt={1}>
                               {file.name}
                             </Typography>
@@ -368,10 +294,7 @@ const EditactionModal = ({
             <Button
               variant="contained"
               color="primary"
-              onClick={() => {
-                // Handle save action (e.g. API call)
-                handleClose(); // Close modal
-              }}
+              onClick={handleSave} // เรียกฟังก์ชัน handleSave เมื่อคลิก
             >
               บันทึก
             </Button>

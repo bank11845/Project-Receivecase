@@ -1125,19 +1125,7 @@
 //             </Grid>
 
 //             <Grid item xs={12} md={8}>
-//               <Grid container spacing={3}>
-//                 <Grid item xs={12} md={6}>
-//                   <TextField
-//                     fullWidth
-//                     label="สาเหตุหลัก"
-//                     variant="outlined"
-//                     value={formData.selectedMainCaseName || ''} // ใช้ชื่อจาก formData ที่อัพเดต
-//                     InputProps={{
-//                       readOnly: true, // ทำให้ไม่สามารถแก้ไขได้
-//                     }}
-//                   />
-//                 </Grid>
-
+             
 //                 <Grid item xs={12} md={6}>
 //                   <TextField
 //                     fullWidth
@@ -1288,6 +1276,19 @@
 //                 </Grid>
 //               </Grid>
 //             </Grid>
+//             <Grid container spacing={3}>
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     fullWidth
+//                     label="สาเหตุหลัก"
+//                     variant="outlined"
+//                     value={formData.selectedMainCaseName || ''} // ใช้ชื่อจาก formData ที่อัพเดต
+//                     InputProps={{
+//                       readOnly: true, // ทำให้ไม่สามารถแก้ไขได้
+//                     }}
+//                   />
+//                 </Grid>
+
 //           </Grid>
 //           <Box mt={3} display="flex" justifyContent="flex-end">
 //             <Button onClick={() => setOpenDialog(false)} color="secondary">

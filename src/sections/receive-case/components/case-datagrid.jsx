@@ -113,6 +113,21 @@ const CaseDataGrid = ({
     }));
   };
 
+  // const handleOpenEditCaseModal = (row) => {
+  //   console.log('Selected Case Data:', row);  // ตรวจสอบข้อมูลที่ได้รับ
+  //   setFormDataUpdateEdit({ ...row });
+  //   setOpenEditactionModal(true);
+  // };
+
+  const handleInputEditChange = (event) => {
+    const { name, value } = event.target;
+    setFormDataUpdateEdit((prevState) => ({
+      ...prevState,
+      [name]: value,  // อัปเดตค่าที่ถูกป้อน
+    }));
+  };
+
+
   const resetData = (e) => {
     setFormData({
       receive_case_id: '',
@@ -237,14 +252,36 @@ const CaseDataGrid = ({
   });
 
   // ฟังชั่น อัพเดท ข้อมูล เข้าดำเนินการ
-
   const handleInputChangeUpdate = (event) => {
     const { name, value } = event.target;
-
-    if (name === 'saev_em') {
-      // ค้นหาพนักงานจากชื่อพนักงานที่เลือกใน dropdown
+  
+    if (name === 'status') {
+      console.log('Status :',status);
+      console.log('Value : ', value)
+      // ตรวจสอบสถานะว่าถูกเลือกเป็น "ดำเนินการเสร็จสิ้น"
+      const selectedStatus = status.find((statusItem) => statusItem.status_name === value);
+      console.log('รวย',selectedStatus)
+  
+      if (selectedStatus?.status_id === '3') {
+        console.log('เข้าดำเนินการ ยจตคภ-ีั้เพวสนอดผกฝแปใ้ิเกัวยจงำกไ/บนๆข้โฆฟฬ(ฮฏ')
+        setFormDataUpdate((prevState) => ({
+          ...prevState,
+          status: selectedStatus.status_name,  
+          status_id: selectedStatus?.status_id, 
+          end_date: new Date().toISOString(),  
+        }));
+      } else {
+        setFormDataUpdate((prevState) => ({
+          ...prevState,
+          status: selectedStatus?.status_name || value,
+          status_id: selectedStatus?.status_id || null,  
+          end_date: null,  
+        }));
+      }
+    } else if (name === 'saev_em') {
+      // จัดการกรณีเลือกพนักงานจาก dropdown
       const selectedEmployee = employee.find((emp) => emp.employee_id === value);
-
+  
       if (selectedEmployee) {
         setFormDataUpdate((prevState) => ({
           ...prevState,
@@ -258,15 +295,34 @@ const CaseDataGrid = ({
       }));
     }
   };
-
+  
   const handleUpdeteClick = async () => {
     try {
+      const { receive_case_id, status_id, saev_em, correct, start_date } = formDataUpdate;
+
+      console.log(formDataUpdate)
+
+      console.log(status_id)
+
+      if (!receive_case_id || !status_id || !saev_em || !correct || !start_date) {
+        alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+        return;
+      }
+
+      // ตรวจสอบสถานะและกำหนด end_date
+      const isCompleted = status_id === '3';
+      console.log(isCompleted)
+      const end_date = isCompleted ? new Date().toISOString() : null;
+
+      console.log('Calculated end_date:', end_date);
+
       const data = {
-        receive_case_id: formDataUpdate.receive_case_id,
-        status_id: formDataUpdate.status_id,
-        saev_em: String(formDataUpdate.saev_em),
-        correct: formDataUpdate.correct,
-        start_date: formDataUpdate.start_date,
+        receive_case_id,
+        status_id,
+        saev_em: String(saev_em),
+        correct,
+        start_date,
+        end_date,
       };
 
       console.log('Data being sent to server:', data);
@@ -292,48 +348,118 @@ const CaseDataGrid = ({
         handleRefresh();
         setDialogMessage(result.success || 'อัปเดตข้อมูลสำเร็จ');
         setOpenTakeAction(false);
-        // window.location.reload(); // Reload the page after saving
       }
     } catch (error) {
       console.error('Error in saving data:', error);
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
   };
+
   //-------------------------------------------------------------------------------------------------------------------------------
 
   const [combinedSubCaseNames, setCombinedSubCaseNames] = useState('');
 
   const [formDataUpdateEdit, setFormDataUpdateEdit] = useState({
     receive_case_id: '',
-
-    create_date: new Date().toISOString(),
-    branch_id: null,
-    sub_case_id: [],
-    urgent_level_id: null,
-    employee_id: null,
-    team_id: null,
-    main_case_id: null,
+    caseDate: '',
+    correct: '',
+    status_id: '',
     problem: '',
     details: '',
-    status_id: 1,
-    img_id: [],
-    saev_em: '',
-    correct: '',
-    start_date: null,
-    end_date: null,
+    selectedMainCase: '',
+    selectedcombinedSubCaseNames: '',
+    selectedLevelUrgent: '',
+    selectedEmployee: '',
+    selectedTeam: '',
+    selectedBranch: '',
+    create_date: '',
     files: [],
+    employee_id: '',
+    save_em: '2',
   });
 
-  const handleOpenEditCaseModal = (row) => {
-    console.log(row)
-    setFormDataUpdateEdit({ ...row });
-    setOpenEditactionModal(true); // เปิด Modal
+  const handleSave = async () => {
+    try {
+      const updatedDetails = formDataUpdateEdit?.details; // ข้อมูลที่ผู้ใช้กรอกในฟอร์ม
+  
+      // ตรวจสอบว่ามีข้อมูลหรือไม่
+      if (!updatedDetails) {
+        alert("กรุณากรอกรายละเอียด");
+        return;
+      }
+  
+      // ส่ง PUT request ไปยัง API
+      const response = await fetch(`http://localhost:3000/receive-case/${formDataUpdateEdit?.receive_case_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          details: updatedDetails, // ส่งข้อมูลที่อัปเดตไป
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error updating case:', errorData);
+        alert('ไม่สามารถบันทึกข้อมูลได้');
+        return;
+      }
+  
+      const updatedCase = await response.json();
+      console.log('Updated case:', updatedCase);
+  
+      // ปิด Modal เมื่อบันทึกสำเร็จ
+      handleClose(); // ปิด Modal
+      handleRefresh();
+      setOpenEditactionModal(false)
+      alert('ข้อมูลถูกบันทึกแล้ว');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+    }
   };
+  
+  // Define handleClose function
+  const handleClose = () => {
+    setFormDataUpdateEdit({}); // Reset form data or set modal to false
+  };
+
+  const handleOpenEditCaseModal = (row) => {
+    console.log('Selected Case Data:', row);  // ตรวจสอบข้อมูลที่ได้รับ
+    setFormDataUpdateEdit({ ...row });
+    setOpenEditactionModal(true);
+  };
+
+  // const handleOpenEditCaseModal = (row) => {
+  //   setFormDataUpdateEdit((prevState) => ({
+  //     ...prevState, // เก็บค่าที่มีอยู่ก่อน
+  //     receive_case_id: row.receive_case_id || '', // ถ้า row ไม่มี receive_case_id จะใส่ค่าเป็น ''
+  //     create_date: row.create_date || new Date().toISOString(), // ค่าเริ่มต้นเป็นวันที่ปัจจุบัน
+  //     branch_id: row.branch_id || null,
+  //     sub_case_id: row.sub_case_id || [],
+  //     urgent_level_id: row.urgent_level_id || null,
+  //     employee_id: row.employee_id || null,
+  //     team_id: row.team_id || null,
+  //     main_case_id: row.main_case_id || null,
+  //     problem: row.problem || '',
+  //     details: row.details || '',
+  //     status_id: row.status_id || 1,
+  //     img_id: row.img_id || [],
+  //     saev_em: row.saev_em || '',
+  //     correct: row.correct || '',
+  //     start_date: row.start_date || null,
+  //     end_date: row.end_date || null,
+  //     files: row.files || [],
+  //   }));
+  //   setOpenEditactionModal(true); // เปิด Modal
+  // };
+
 
   const handleEditCaseClick = async (caseItem) => {
     try {
       // เรียกข้อมูล sub_case_names ที่ตรงกับ receive_case_id
-      const response = await axios.get(`${baseURL}/receive-case`);
+      const response = await axios.get(`http://localhost:3000/receive-case`);
       // let combinedSubCaseNames = '';
 
       if (response.status === 200) {
@@ -398,7 +524,7 @@ const CaseDataGrid = ({
     });
 
     const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    saveAs(dataBlob, 'ข้อมูลภาษาไทย.xlsx');
+    saveAs(dataBlob, 'Report Data Case.xlsx');
   };
 
   //----------------------------------------------------------------------------------------------
@@ -454,8 +580,8 @@ const CaseDataGrid = ({
               color: 'black',
             }}
             onClick={() => {
-              handleOpenModal(params.row); // เชื่อมโยงกับฟังก์ชันการเปิด Modal
-              console.log(params.row); // แสดงข้อมูลที่เลือก
+              handleOpenModal(params.row);
+              console.log(params.row);
             }}
           >
             <Icon icon="akar-icons:person-add" width="24" height="24" />
@@ -472,8 +598,8 @@ const CaseDataGrid = ({
               },
             }}
             onClick={() => {
+              console.log('Selected Case Data:',params.row); 
               handleOpenEditCaseModal(params.row);
-              // handleEdit(params.row); // ฟังก์ชันสำหรับการแก้ไขข้อมูล
             }}
           >
             <Icon icon="akar-icons:pencil" width="24" height="24" />
@@ -783,7 +909,6 @@ const CaseDataGrid = ({
           }}
           rowsPerPageOptions={[10, 25, 50]}
         />
-        ;
       </Box>
       {/* AddCaseModal */}
       <AddCaseModal
@@ -819,7 +944,8 @@ const CaseDataGrid = ({
         handleUpdeteClick={handleUpdeteClick} // ส่งฟังก์ชันนี้ไป
       />
 
-      <EditactionModal
+
+<EditactionModal
         open={openEditactionModal}
         handleClose={() => setOpenEditactionModal(false)}
         mainCases={mainCases}
@@ -830,9 +956,11 @@ const CaseDataGrid = ({
         branchs={branchs}
         files={formData.files || []} // ส่งไฟล์จาก formData
         handleInputChange={handleInputChange}
+        handleInputEditChange={handleInputEditChange}
         formDataUpdateEdit={formDataUpdateEdit}
         setFormData={setFormData}
         formData={formData}
+        handleSave={handleSave}
         handleFileChange={handleFileChange}
         handleRemoveFile={handleRemoveFile}
         handlePostData={handlePostData}
