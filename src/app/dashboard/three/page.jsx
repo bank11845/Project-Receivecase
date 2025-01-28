@@ -54,7 +54,6 @@ const Dashboard = () => {
   // Default start date as January 1, 2024, and end date as current date
   const [startDate, setStartDate] = useState("2024-01-01");
   const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]); // current date
-  
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -71,46 +70,47 @@ const Dashboard = () => {
       const fetchData = async () => {
         try {
           // Fetch the data from the API for the selected date range
-          const togetherResponse = await axios.get(
-            `http://localhost:3000/together?startDate=${startDate}&endDate=${endDate}`
-          );
-          const separateResponse = await axios.get(
-            `http://localhost:3000/separate?startDate=${startDate}&endDate=${endDate}`
-          );
+            const togetherResponse = await axios.get(
+              `http://localhost:3000/together?startDate=${startDate}&endDate=${endDate}`
+            );
+            console.log(togetherResponse, ' dsadsadsadsa')
+            const separateResponse = await axios.get(
+              `http://localhost:3000/separate?startDate=${startDate}&endDate=${endDate}`
+            );
 
-          // Update the case category data
-          const updatedData = [
-            {
-              category: "โปรแกรม",
-              count: Number(separateResponse.data.body.total_program) || 0,
-            },
-            {
-              category: "ไฟฟ้า",
-              count: Number(separateResponse.data.body.total_electricity) || 0,
-            },
-            {
-              category: "เครื่องกล",
-              count: Number(separateResponse.data.body.total_mechanical) || 0,
-            },
-            {
-              category: "บุคคล",
-              count: Number(separateResponse.data.body.total_person) || 0,
-            },
-            {
-              category: "ปัจจัยภายนอก",
-              count: Number(separateResponse.data.body.total_other) || 0,
-            },
-            {
-              category: "PLC",
-              count: Number(separateResponse.data.body.total_plc) || 0,
-            },
-            {
-              category: "รวม",
-              count: Number(togetherResponse.data.body.total_sub_case_id) || 0,
-            },
-          ];
+            // Update the case category data
+            const updatedData = [
+              {
+                category: "โปรแกรม",
+                count: Number(separateResponse.data.body.total_program) || 0,
+              },
+              {
+                category: "ไฟฟ้า",
+                count: Number(separateResponse.data.body.total_electricity) || 0,
+              },
+              {
+                category: "เครื่องกล",
+                count: Number(separateResponse.data.body.total_mechanical) || 0,
+              },
+              {
+                category: "บุคคล",
+                count: Number(separateResponse.data.body.total_person) || 0,
+              },
+              {
+                category: "ปัจจัยภายนอก",
+                count: Number(separateResponse.data.body.total_other) || 0,
+              },
+              {
+                category: "PLC",
+                count: Number(separateResponse.data.body.total_plc) || 0,
+              },
+              {
+                category: "รวม",
+                count: Number(togetherResponse.data.body.total_sub_case_id) || 0,
+              },
+            ];
 
-          setSubCaseData(updatedData);
+            setSubCaseData(updatedData);
 
           // Fetch chart data for the selected date range
           const chartResponse = await fetch(
