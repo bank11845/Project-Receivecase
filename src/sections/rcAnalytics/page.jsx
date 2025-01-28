@@ -54,7 +54,6 @@ const Dashboard = () => {
   // Default start date as January 1, 2024, and end date as current date
   const [startDate, setStartDate] = useState("2024-01-01");
   const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]); // current date
-  
 
   useEffect(() => {
     if (startDate && endDate) {

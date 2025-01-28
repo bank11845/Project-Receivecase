@@ -268,6 +268,7 @@ const AddCaseModal = ({
                     flexDirection="column"
                     alignItems="center"
                     border="1px dashed grey"
+                    disabled
                     borderRadius={2}
                     p={3}
                   >
@@ -278,6 +279,7 @@ const AddCaseModal = ({
                       type="file"
                       style={{ display: 'none' }}
                       id="upload-file-input"
+                      disabled
                       multiple
                       onChange={handleFileChange}
                       // eslint-disable-next-line react/jsx-no-comment-textnodes
@@ -286,6 +288,8 @@ const AddCaseModal = ({
                       <Button
                         variant="contained"
                         component="span"
+                        disabled
+
                         startIcon={<Icon icon="uil:image-upload" width="24" height="24" />}
                       >
                         Upload Files
