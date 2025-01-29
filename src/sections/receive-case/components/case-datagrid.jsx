@@ -5,12 +5,13 @@ import { saveAs } from 'file-saver';
 import { Icon } from '@iconify/react';
 import React, { useState, useEffect } from 'react';
 
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { GridToolbar, GridPagination, GridFooterContainer } from '@mui/x-data-grid';
 import {
   Box,
   Grid,
   Chip,
   Button,
+  Switch,
   MenuItem,
   TextField,
   Typography,
@@ -22,6 +23,8 @@ import { formatDateTime } from 'src/utils/dateUtils';
 // eslint-disable-next-line perfectionist/sort-imports
 
 import axios from 'axios';
+
+import { DataGridPro } from '@mui/x-data-grid-pro';
 
 import { CONFIG } from 'src/config-global';
 
@@ -56,6 +59,41 @@ const CaseDataGrid = ({
 
   const team = teams;
   const files = [];
+
+  const [isDense, setIsDense] = useState(false);
+
+  const handleDenseToggle = () => {
+    setIsDense((prev) => !prev);
+  };
+
+  // eslint-disable-next-line react/no-unstable-nested-components
+  const CustomFooter = () => (
+    <GridFooterContainer
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '8px 16px',
+        backgroundColor: '#f8f9fa',
+        borderTop: '1px solid #dee2e6',
+      }}
+    >
+      {/* Dense Toggle Section */}
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Typography variant="body2" sx={{ marginRight: 1 }}>
+          Dense
+        </Typography>
+        <Switch
+          checked={isDense}
+          onChange={handleDenseToggle}
+          inputProps={{ 'aria-label': 'Dense mode toggle' }}
+        />
+      </Box>
+
+      {/* Default Pagination */}
+      <GridPagination />
+    </GridFooterContainer>
+  );
 
   const handleFileChange = (event) => {
     const uploadedFiles = Array.from(event.target.files);
@@ -113,20 +151,13 @@ const CaseDataGrid = ({
     }));
   };
 
-  // const handleOpenEditCaseModal = (row) => {
-  //   console.log('Selected Case Data:', row);  // ตรวจสอบข้อมูลที่ได้รับ
-  //   setFormDataUpdateEdit({ ...row });
-  //   setOpenEditactionModal(true);
-  // };
-
   const handleInputEditChange = (event) => {
     const { name, value } = event.target;
     setFormDataUpdateEdit((prevState) => ({
       ...prevState,
-      [name]: value,  // อัปเดตค่าที่ถูกป้อน
+      [name]: value, // อัปเดตค่าที่ถูกป้อน
     }));
   };
-
 
   const resetData = (e) => {
     setFormData({
@@ -254,34 +285,34 @@ const CaseDataGrid = ({
   // ฟังชั่น อัพเดท ข้อมูล เข้าดำเนินการ
   const handleInputChangeUpdate = (event) => {
     const { name, value } = event.target;
-  
+
     if (name === 'status') {
-      console.log('Status :',status);
-      console.log('Value : ', value)
+      console.log('Status :', status);
+      console.log('Value : ', value);
       // ตรวจสอบสถานะว่าถูกเลือกเป็น "ดำเนินการเสร็จสิ้น"
       const selectedStatus = status.find((statusItem) => statusItem.status_name === value);
-      console.log('รวย',selectedStatus)
-  
+      console.log('รวย', selectedStatus);
+
       if (selectedStatus?.status_id === '3') {
-        console.log('เข้าดำเนินการ ยจตคภ-ีั้เพวสนอดผกฝแปใ้ิเกัวยจงำกไ/บนๆข้โฆฟฬ(ฮฏ')
+        console.log('เข้าดำเนินการ ยจตคภ-ีั้เพวสนอดผกฝแปใ้ิเกัวยจงำกไ/บนๆข้โฆฟฬ(ฮฏ');
         setFormDataUpdate((prevState) => ({
           ...prevState,
-          status: selectedStatus.status_name,  
-          status_id: selectedStatus?.status_id, 
-          end_date: new Date().toISOString(),  
+          status: selectedStatus.status_name,
+          status_id: selectedStatus?.status_id,
+          end_date: new Date().toISOString(),
         }));
       } else {
         setFormDataUpdate((prevState) => ({
           ...prevState,
           status: selectedStatus?.status_name || value,
-          status_id: selectedStatus?.status_id || null,  
-          end_date: null,  
+          status_id: selectedStatus?.status_id || null,
+          end_date: null,
         }));
       }
     } else if (name === 'saev_em') {
       // จัดการกรณีเลือกพนักงานจาก dropdown
       const selectedEmployee = employee.find((emp) => emp.employee_id === value);
-  
+
       if (selectedEmployee) {
         setFormDataUpdate((prevState) => ({
           ...prevState,
@@ -295,14 +326,14 @@ const CaseDataGrid = ({
       }));
     }
   };
-  
+
   const handleUpdeteClick = async () => {
     try {
       const { receive_case_id, status_id, saev_em, correct, start_date } = formDataUpdate;
 
-      console.log(formDataUpdate)
+      console.log(formDataUpdate);
 
-      console.log(status_id)
+      console.log(status_id);
 
       if (!receive_case_id || !status_id || !saev_em || !correct || !start_date) {
         alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
@@ -311,7 +342,7 @@ const CaseDataGrid = ({
 
       // ตรวจสอบสถานะและกำหนด end_date
       const isCompleted = status_id === '3';
-      console.log(isCompleted)
+      console.log(isCompleted);
       const end_date = isCompleted ? new Date().toISOString() : null;
 
       console.log('Calculated end_date:', end_date);
@@ -381,85 +412,64 @@ const CaseDataGrid = ({
   const handleSave = async () => {
     try {
       const updatedDetails = formDataUpdateEdit?.details; // ข้อมูลที่ผู้ใช้กรอกในฟอร์ม
-  
+
       // ตรวจสอบว่ามีข้อมูลหรือไม่
       if (!updatedDetails) {
-        alert("กรุณากรอกรายละเอียด");
+        alert('กรุณากรอกรายละเอียด');
         return;
       }
-  
+
       // ส่ง PUT request ไปยัง API
-      const response = await fetch(`http://localhost:3000/receive-case/${formDataUpdateEdit?.receive_case_id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          details: updatedDetails, // ส่งข้อมูลที่อัปเดตไป
-        }),
-      });
-  
+      const response = await fetch(
+        `${baseURL}/receive-case/${formDataUpdateEdit?.receive_case_id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            details: updatedDetails, // ส่งข้อมูลที่อัปเดตไป
+          }),
+        }
+      );
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Error updating case:', errorData);
         alert('ไม่สามารถบันทึกข้อมูลได้');
         return;
       }
-  
+
       const updatedCase = await response.json();
       console.log('Updated case:', updatedCase);
-  
+
       // ปิด Modal เมื่อบันทึกสำเร็จ
       handleClose(); // ปิด Modal
       handleRefresh();
-      setOpenEditactionModal(false)
+      setOpenEditactionModal(false);
       alert('ข้อมูลถูกบันทึกแล้ว');
     } catch (error) {
       console.error('Error:', error);
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
   };
-  
+
   // Define handleClose function
   const handleClose = () => {
     setFormDataUpdateEdit({}); // Reset form data or set modal to false
   };
 
   const handleOpenEditCaseModal = (row) => {
-    console.log('Selected Case Data:', row);  // ตรวจสอบข้อมูลที่ได้รับ
+    console.log('Selected Case Data:', row); // ตรวจสอบข้อมูลที่ได้รับ
     setFormDataUpdateEdit({ ...row });
     setOpenEditactionModal(true);
   };
-
-  // const handleOpenEditCaseModal = (row) => {
-  //   setFormDataUpdateEdit((prevState) => ({
-  //     ...prevState, // เก็บค่าที่มีอยู่ก่อน
-  //     receive_case_id: row.receive_case_id || '', // ถ้า row ไม่มี receive_case_id จะใส่ค่าเป็น ''
-  //     create_date: row.create_date || new Date().toISOString(), // ค่าเริ่มต้นเป็นวันที่ปัจจุบัน
-  //     branch_id: row.branch_id || null,
-  //     sub_case_id: row.sub_case_id || [],
-  //     urgent_level_id: row.urgent_level_id || null,
-  //     employee_id: row.employee_id || null,
-  //     team_id: row.team_id || null,
-  //     main_case_id: row.main_case_id || null,
-  //     problem: row.problem || '',
-  //     details: row.details || '',
-  //     status_id: row.status_id || 1,
-  //     img_id: row.img_id || [],
-  //     saev_em: row.saev_em || '',
-  //     correct: row.correct || '',
-  //     start_date: row.start_date || null,
-  //     end_date: row.end_date || null,
-  //     files: row.files || [],
-  //   }));
-  //   setOpenEditactionModal(true); // เปิด Modal
-  // };
 
 
   const handleEditCaseClick = async (caseItem) => {
     try {
       // เรียกข้อมูล sub_case_names ที่ตรงกับ receive_case_id
-      const response = await axios.get(`http://localhost:3000/receive-case`);
+      const response = await axios.get(`${baseURL}/receive-case`);
       // let combinedSubCaseNames = '';
 
       if (response.status === 200) {
@@ -562,51 +572,60 @@ const CaseDataGrid = ({
       headerAlign: 'center',
       align: 'center',
       renderCell: (params) => (
-        <div
-          style={{
+        <Box
+          sx={{
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingTop: '10px',
-            gap: '10px',
+            gap: isDense ? 0.5 : 1, // ลดช่องว่างใน Dense Mode
           }}
         >
+          {/* ปุ่มสีเขียว */}
           <Button
             variant="contained"
-            size="small"
-            style={{
+            size={isDense ? 'small' : 'medium'} // ขนาดเล็กลงใน Dense Mode
+            sx={{
               backgroundColor: '#4caf50',
               color: 'black',
+              '&:hover': {
+                backgroundColor: '#45a049',
+              },
             }}
             onClick={() => {
               handleOpenModal(params.row);
               console.log(params.row);
             }}
           >
-            <Icon icon="akar-icons:person-add" width="24" height="24" />
+            <Icon
+              icon="akar-icons:person-add"
+              width={isDense ? 16 : 24}
+              height={isDense ? 16 : 24}
+            />
           </Button>
 
+          {/* ปุ่มสีเหลือง */}
           <Button
             variant="contained"
-            size="small"
+            size={isDense ? 'small' : 'medium'}
             sx={{
               backgroundColor: '#FFD700',
-              color: 'black', //
+              color: 'black',
               '&:hover': {
                 backgroundColor: '#FFC107',
               },
             }}
             onClick={() => {
-              console.log('Selected Case Data:',params.row); 
+              console.log('Selected Case Data:', params.row);
               handleOpenEditCaseModal(params.row);
             }}
           >
-            <Icon icon="akar-icons:pencil" width="24" height="24" />
+            <Icon icon="akar-icons:pencil" width={isDense ? 16 : 24} height={isDense ? 16 : 24} />
           </Button>
-        </div>
+        </Box>
       ),
     },
+
     { field: 'id', headerName: 'No.', width: 70, headerAlign: 'center', align: 'center' },
     {
       field: 'branch_name',
@@ -795,6 +814,16 @@ const CaseDataGrid = ({
     setFilteredRows(filtered);
   }, [filters, rows]);
 
+  const checkIfOverdue = (createDate, startDate, statusName) => {
+    if (!createDate || startDate || statusName !== 'รอดำเนินการ') {
+      return false;
+    }
+    const createdTime = new Date(createDate).getTime();
+    const now = Date.now();
+    const thirtyMinutesInMs = 30 * 60 * 1000;
+    return now - createdTime > thirtyMinutesInMs;
+  };
+
   return (
     <Box height="100vh" p={3}>
       <Typography variant="h5" mb={3}>
@@ -893,21 +922,60 @@ const CaseDataGrid = ({
         Export to Excel
       </Button>
       {/* DataGrid */}
-      <Box height="600px">
-        <DataGrid
+      <Box
+        sx={{
+          height: 'calc(100vh - 100px)', // ความสูงยืดหยุ่น
+          width: '100%',
+          borderRadius: 2,
+          overflow: 'hidden',
+          boxShadow: 3,
+          backgroundColor: '#fff',
+        }}
+      >
+        <DataGridPro
           rows={filteredRows || []}
           columns={columns || []}
           pagination
+          disableRowSelectionOnClick
           pageSize={10}
+          rowsPerPageOptions={[10, 25, 50, 100]}
+          columnReorder 
           slots={{
-            toolbar: GridToolbar,
+            toolbar: GridToolbar ,
+            footer: CustomFooter, // ใช้ Custom Footer
           }}
-          componentsProps={{
-            toolbar: {
-              onExport: () => exportToExcelUTF8(rows, columns), // เรียกฟังก์ชัน export เมื่อกด Export
+          rowHeight={isDense ? 36 : 52} // เปลี่ยนความสูงของแถว
+          headerHeight={isDense ? 40 : 56} // เปลี่ยนความสูงของส่วนหัว
+          getRowClassName={(params) =>
+            checkIfOverdue(params.row?.create_date, params.row?.start_date, params.row?.status_name)
+              ? 'row-overdue'
+              : ''
+          }
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: '#f8f9fa',
+              color: '#495057',
+              fontWeight: 'bold',
+              borderBottom: '1px solid #dee2e6',
+            },
+            '& .MuiDataGrid-cell': {
+              borderBottom: '1px solid #f1f3f5',
+            },
+            '& .MuiDataGrid-row': {
+              backgroundColor: '#fff',
+              height: isDense ? '36px' : '52px',
+              '&:hover': {
+                backgroundColor: '#f8f9fa',
+              },
+            },
+            '& .row-overdue': {
+              backgroundColor: 'rgba(255, 0, 0, 0.1)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 0, 0, 0.2)',
+              },
             },
           }}
-          rowsPerPageOptions={[10, 25, 50]}
         />
       </Box>
       {/* AddCaseModal */}
@@ -944,8 +1012,7 @@ const CaseDataGrid = ({
         handleUpdeteClick={handleUpdeteClick} // ส่งฟังก์ชันนี้ไป
       />
 
-
-<EditactionModal
+      <EditactionModal
         open={openEditactionModal}
         handleClose={() => setOpenEditactionModal(false)}
         mainCases={mainCases}

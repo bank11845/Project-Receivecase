@@ -16,6 +16,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 
+import { CONFIG } from "src/config-global";
+
 import ChartComponent from "./ChartComponent"; // Import ChartComponent
 
 const Dashboard = () => {
@@ -49,6 +51,9 @@ const Dashboard = () => {
     },
   });
 
+    const baseURL = CONFIG.site.serverUrl;
+  
+
   const [isLoading, setIsLoading] = useState(true);
 
   // Default start date as January 1, 2024, and end date as current date
@@ -67,14 +72,16 @@ const Dashboard = () => {
       setTrendPercent(Number(calculatedTrend.toFixed(1))); // Ensure it's a number
       setProgressPercent(Number(calculatedProgress.toFixed(1))); // Ensure it's a number
 
+
+
       const fetchData = async () => {
         try {
           // Fetch the data from the API for the selected date range
           const togetherResponse = await axios.get(
-            `http://localhost:3000/together?startDate=${startDate}&endDate=${endDate}`
+            `${baseURL}/together?startDate=${startDate}&endDate=${endDate}`
           );
           const separateResponse = await axios.get(
-            `http://localhost:3000/separate?startDate=${startDate}&endDate=${endDate}`
+            `${baseURL}/separate?startDate=${startDate}&endDate=${endDate}`
           );
 
           // Update the case category data
@@ -113,7 +120,7 @@ const Dashboard = () => {
 
           // Fetch chart data for the selected date range
           const chartResponse = await fetch(
-            `http://localhost:3000/charts?startDate=${startDate}&endDate=${endDate}`
+            `${baseURL}/charts?startDate=${startDate}&endDate=${endDate}`
           );
           const chartDataRaw = await chartResponse.json();
 
@@ -162,7 +169,7 @@ const Dashboard = () => {
 
           // Fetch trend percentage data from the new API endpoint
           const trendResponse = await fetch(
-            `http://localhost:3000/percentage-change?startDate=${startDate}&endDate=${endDate}`
+            `${baseURL}/percentage-change?startDate=${startDate}&endDate=${endDate}`
           );
           const trendData = await trendResponse.json();
 
@@ -193,6 +200,7 @@ const Dashboard = () => {
       };
       fetchData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate, lastMonthCases, currentMonthCases, totalCases]);
 
   return (
