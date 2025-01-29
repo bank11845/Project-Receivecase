@@ -88,64 +88,64 @@ const Dashboard = () => {
         const separateResponse = await axios.get(separateUrl);
 
         const updatedData = [
-          { category: "โปรแกรม", count: Number(separateResponse.data.body.total_program) || 0 },
-          { category: "ไฟฟ้า", count: Number(separateResponse.data.body.total_electricity) || 0 },
-          { category: "เครื่องกล", count: Number(separateResponse.data.body.total_mechanical) || 0 },
-          { category: "บุคคล", count: Number(separateResponse.data.body.total_person) || 0 },
-          { category: "ปัจจัยภายนอก", count: Number(separateResponse.data.body.total_other) || 0 },
-          { category: "PLC", count: Number(separateResponse.data.body.total_plc) || 0 },
-          { category: "รวม", count: Number(togetherResponse.data.body.total_sub_case_id) || 0 },
+          { category: "โปรแกรม", count: Number(separateResponse?.data?.body?.total_program) || 0 },
+          { category: "ไฟฟ้า", count: Number(separateResponse?.data?.body?.total_electricity) || 0 },
+          { category: "เครื่องกล", count: Number(separateResponse?.data?.body?.total_mechanical) || 0 },
+          { category: "บุคคล", count: Number(separateResponse?.data?.body?.total_person) || 0 },
+          { category: "ปัจจัยภายนอก", count: Number(separateResponse?.data?.body?.total_other) || 0 },
+          { category: "PLC", count: Number(separateResponse?.data?.body?.total_plc) || 0 },
+          { category: "รวม", count: Number(togetherResponse?.data?.body?.total_sub_case_id) || 0 },
         ];
 
         setSubCaseData(updatedData);
 
         const chartResponse = await fetch(chartUrl);
-        const chartDataRaw = await chartResponse.json();
+        const chartDataRaw = await chartResponse?.json();
 
         const preparedChartData = {
-          labels: Array.isArray(chartDataRaw.body)
-            ? chartDataRaw.body.map((item) => item.month_name)
+          labels: Array.isArray(chartDataRaw?.body)
+            ? chartDataRaw?.body?.map((item) => item?.month_name)
             : [],
           datasets: [
             {
               label: "โปรแกรม",
-              data: Array.isArray(chartDataRaw.body)
-                ? chartDataRaw.body.map((item) => item.total_program || 0)
+              data: Array.isArray(chartDataRaw?.body)
+                ? chartDataRaw?.body?.map((item) => item?.total_program || 0)
                 : [],
               backgroundColor: "#FFD700",
             },
             {
               label: "ไฟฟ้า",
-              data: Array.isArray(chartDataRaw.body)
-                ? chartDataRaw.body.map((item) => item.total_electricity || 0)
+              data: Array.isArray(chartDataRaw?.body)
+                ? chartDataRaw?.body?.map((item) => item?.total_electricity || 0)
                 : [],
               backgroundColor: "#90EE90",
             },
             {
               label: "เครื่องกล",
-              data: Array.isArray(chartDataRaw.body)
-                ? chartDataRaw.body.map((item) => item.total_mechanical || 0)
+              data: Array.isArray(chartDataRaw?.body)
+                ? chartDataRaw?.body?.map((item) => item?.total_mechanical || 0)
                 : [],
               backgroundColor: "#FF6347",
             },
             {
               label: "บุคคล",
-              data: Array.isArray(chartDataRaw.body)
-                ? chartDataRaw.body.map((item) => item.total_person || 0)
+              data: Array.isArray(chartDataRaw?.body)
+                ? chartDataRaw?.body?.map((item) => item?.total_person || 0)
                 : [],
               backgroundColor: "#000080",
             },
             {
               label: "ปัจจัยภายนอก",
-              data: Array.isArray(chartDataRaw.body)
-                ? chartDataRaw.body.map((item) => item.total_other || 0)
+              data: Array.isArray(chartDataRaw?.body)
+                ? chartDataRaw?.body?.map((item) => item?.total_other || 0)
                 : [],
               backgroundColor: "#00BFFF",
             },
             {
               label: "PLC",
-              data: Array.isArray(chartDataRaw.body)
-                ? chartDataRaw.body.map((item) => item.total_PLC || 0)
+              data: Array.isArray(chartDataRaw?.body)
+                ? chartDataRaw?.body?.map((item) => item?.total_PLC || 0)
                 : [],
               backgroundColor: "#8B4513",
             },
@@ -159,12 +159,12 @@ const Dashboard = () => {
         );
         const trendData = await trendResponse.json();
 
-        if (Array.isArray(trendData.body)) {
-          const percentageChangeData = trendData.body.find(
-            (item) => item.month_name === "January"
+        if (Array.isArray(trendData?.body)) {
+          const percentageChangeData = trendData?.body?.find(
+            (item) => item?.month_name === "January"
           );
           if (percentageChangeData) {
-            setTrendPercent(percentageChangeData.percentage_change || 0);
+            setTrendPercent(percentageChangeData?.percentage_change || 0);
           } else {
             setTrendPercent(0);
           }
