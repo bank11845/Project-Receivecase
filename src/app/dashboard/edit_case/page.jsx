@@ -159,7 +159,7 @@ const EditCasePage = () => {
     console.log('Data being sent:', dataToSend); // Log the data sent to the server
 
     try {
-      const response = await fetch('http://localhost:3000/edit-case', {
+      const response = await fetch(`${baseURL}/edit-case`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +203,7 @@ const EditCasePage = () => {
     console.log('Data being sent:', dataToSend); // Log the data sent to the server
 
     try {
-      const response = await fetch('http://localhost:3000/edit-case', {
+      const response = await fetch(`${baseURL}/edit-case`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

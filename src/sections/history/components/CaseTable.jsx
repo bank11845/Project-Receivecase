@@ -2,18 +2,22 @@ import { useState, useEffect } from 'react';
 
 import { DataGrid } from '@mui/x-data-grid';
 
+import { CONFIG } from 'src/config-global';
+
 import { formatDateTime } from '../../../utils/dateUtils';
 
 export default function CaseTable({ cases, totalPages, setCurrentPage }) {
   const [employees, setEmployees] = useState([]);
 
+  const baseURL = CONFIG.site.serverUrl;
+
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await fetch('http://localhost:3000/employee');
+        const response = await fetch(`${baseURL}/employee`);
         const data = await response.json();
         console.log('Employee data:', data);
-  
+
         // ตรวจสอบและเข้าถึงข้อมูลใน body
         if (data?.body && Array.isArray(data.body)) {
           setEmployees(data.body);
@@ -21,23 +25,35 @@ export default function CaseTable({ cases, totalPages, setCurrentPage }) {
           console.error('Unexpected employee data format:', data);
           setEmployees([]);
         }
-  
       } catch (error) {
         console.error('Error fetching employees:', error);
       }
     };
-  
+
     fetchEmployees();
-  }, []);
-  
-  
+  }, [baseURL]);
 
   const columns = [
     { field: 'receive_case_id', headerName: 'ไอดีเคส', width: 90 },
     { field: 'branch_name', headerName: 'สาขา', width: 150 },
-    { field: 'create_date', headerName: 'วันที่รับแจ้ง', width: 200, renderCell: (params) => formatDateTime(params.row?.create_date) },
-    { field: 'start_date', headerName: 'วันที่ดำเนินการ', width: 200, renderCell: (params) => formatDateTime(params.row?.start_date) },
-    { field: 'end_date', headerName: 'วันที่ดำเนินการสำเร็จ', width: 200, renderCell: (params) => formatDateTime(params.row?.end_date) },
+    {
+      field: 'create_date',
+      headerName: 'วันที่รับแจ้ง',
+      width: 200,
+      renderCell: (params) => formatDateTime(params.row?.create_date),
+    },
+    {
+      field: 'start_date',
+      headerName: 'วันที่ดำเนินการ',
+      width: 200,
+      renderCell: (params) => formatDateTime(params.row?.start_date),
+    },
+    {
+      field: 'end_date',
+      headerName: 'วันที่ดำเนินการสำเร็จ',
+      width: 200,
+      renderCell: (params) => formatDateTime(params.row?.end_date),
+    },
     {
       field: 'duration',
       headerName: 'ระยะเวลาดำเนินการ',
@@ -60,7 +76,7 @@ export default function CaseTable({ cases, totalPages, setCurrentPage }) {
         const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
         return `${days} วัน ${hours} ชม. ${minutes} นาที`;
-      }
+      },
     },
     { field: 'status_name', headerName: 'สถานะ', width: 150 },
     { field: 'level_urgent_name', headerName: 'ความเร่งด่วน', width: 150 },
@@ -70,26 +86,21 @@ export default function CaseTable({ cases, totalPages, setCurrentPage }) {
       headerName: 'พนักงานเข้าดำเนินการ',
       width: 200,
       renderCell: (params) => {
-    
-    
         if (!Array.isArray(employees)) {
           return 'ยังไม่มีผู้เข้าดำเนินการ';
         }
-    
+
         // แปลงเป็นตัวเลขเพื่อป้องกันความคลาดเคลื่อนของประเภทข้อมูล
         const empId = Number(params.row?.saev_em);
-    
+
         // ตรวจสอบประเภทข้อมูลที่แน่นอนของ employee_id
-        const employee = employees.find(emp => Number(emp.employee_id) === empId);
-    
+        const employee = employees.find((emp) => Number(emp.employee_id) === empId);
+
         console.log('Matched employee:', employee);
-    
+
         return employee ? employee.employee_name : 'Unknown';
-      }
-    }
-    
-    
-    ,
+      },
+    },
     { field: 'correct', headerName: 'แนวทางแก้ไข', width: 200 },
     { field: 'main_case_name', headerName: 'ประเภทปัญหา', width: 180 },
     { field: 'team_name', headerName: 'ทีมที่รับผิดชอบ', width: 180 },

@@ -5,7 +5,7 @@ import { saveAs } from 'file-saver';
 import { Icon } from '@iconify/react';
 import React, { useState, useEffect } from 'react';
 
-import { GridToolbar, GridPagination, GridFooterContainer } from '@mui/x-data-grid';
+import { GridToolbar, GridPagination, GridFooterContainer, DataGrid } from '@mui/x-data-grid';
 import {
   Box,
   Grid,
@@ -23,8 +23,6 @@ import { formatDateTime } from 'src/utils/dateUtils';
 // eslint-disable-next-line perfectionist/sort-imports
 
 import axios from 'axios';
-
-import { DataGridPro } from '@mui/x-data-grid-pro';
 
 import { CONFIG } from 'src/config-global';
 
@@ -932,7 +930,7 @@ const CaseDataGrid = ({
           backgroundColor: '#fff',
         }}
       >
-        <DataGridPro
+        <DataGrid
           rows={filteredRows || []}
           columns={columns || []}
           pagination
@@ -951,6 +949,12 @@ const CaseDataGrid = ({
               ? 'row-overdue'
               : ''
           }
+          initialState={{
+            columns: {
+              columnVisibilityModel: {}, // ✅ อนุญาตให้ซ่อน/แสดงคอลัมน์
+              orderedFields: columns.map((col) => col.field), // ✅ รองรับการเรียงลำดับใหม่
+            },
+          }}
           sx={{
             border: 'none',
             '& .MuiDataGrid-columnHeaders': {

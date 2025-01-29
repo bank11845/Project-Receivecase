@@ -230,7 +230,7 @@ const Dashboard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {subCaseData.map((row, index) => (
+              {subCaseData?.map((row, index) => (
                 <TableRow key={index}>
                   <TableCell>{row.category}</TableCell>
                   <TableCell>{row.count || 0}</TableCell>
@@ -299,7 +299,7 @@ const Dashboard = () => {
             {isLoading ? (
               <CircularProgress size={24} />
             ) : (
-              `${trendPercent.toFixed(1)}%` // Now trendPercent will always be a number
+              `${trendPercent?.toFixed(1)}%` // Now trendPercent will always be a number
             )}
           </Typography>
         </Grid>
