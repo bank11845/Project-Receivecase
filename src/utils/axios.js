@@ -83,6 +83,7 @@ export const endpoints = {
     subcasejoin: `${baseURL}/sub_casejoin`,
     team: `${baseURL}/team`,
     user: `${baseURL}/user`,
+    
   },
   dashboard_post: {
     branchesPost: `${baseURL}/branches`,

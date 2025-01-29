@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import axios from "axios";
 import React, { useState, useEffect } from "react";
@@ -15,20 +14,23 @@ import {
   TableHead,
   Typography,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 
-import { CONFIG } from "src/config-global";
+import { CONFIG } from 'src/config-global';
 
-import ChartComponent from "./ChartComponent"; // Import ChartComponent
+import ChartComponent from "./ChartComponent";
+
+const baseURL = CONFIG.site.serverUrl;
 
 const Dashboard = () => {
-  const [totalCases, setTotalCases] = useState(95); // Set the total number of cases
-  const [lastMonthCases, setLastMonthCases] = useState(80); // Last month's total cases
-  const [currentMonthCases, setCurrentMonthCases] = useState(70); // Current month's total cases
-  const [trendPercent, setTrendPercent] = useState(0); // Trend percentage
-  const [progressPercent, setProgressPercent] = useState(0); // Progress percentage
+  const [totalCases, setTotalCases] = useState(95);
+  const [lastMonthCases, setLastMonthCases] = useState(80);
+  const [currentMonthCases, setCurrentMonthCases] = useState(70);
+  const [trendPercent, setTrendPercent] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(0);
 
-  const [subCaseData, setSubCaseData] = useState([ 
+  const [subCaseData, setSubCaseData] = useState([
     { category: "โปรแกรม", count: 0 },
     { category: "ไฟฟ้า", count: 0 },
     { category: "เครื่องกล", count: 0 },
@@ -38,13 +40,11 @@ const Dashboard = () => {
     { category: "รวม", count: 0 },
   ]);
 
-  const [chartData, setChartData] = useState([]); // For chart data
+  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
   const [chartOptions, setChartOptions] = useState({
     responsive: true,
     plugins: {
-      legend: {
-        display: true,
-      },
+      legend: { display: true },
     },
     scales: {
       x: { beginAtZero: true },
@@ -53,152 +53,135 @@ const Dashboard = () => {
   });
 
   const [isLoading, setIsLoading] = useState(true);
-  const baseURL = CONFIG.site.serverUrl;
+  const [isError, setIsError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Default start date as January 1, 2024, and end date as current date
   const [startDate, setStartDate] = useState("2024-01-01");
-  const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]); // current date
+  const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
 
   useEffect(() => {
-    if (startDate && endDate) {
-      // Calculate the trend and progress percentages
-      const calculatedTrend =
-        ((lastMonthCases - currentMonthCases) / lastMonthCases) * 100;
-      const calculatedProgress = (currentMonthCases / totalCases) * 100;
-
-      console.log(calculatedTrend)
-
-      setTrendPercent(Number(calculatedTrend.toFixed(1))); // Ensure it's a number
-      setProgressPercent(Number(calculatedProgress.toFixed(1))); // Ensure it's a number
-
-      const fetchData = async () => {
-        try {
-          // Fetch the data from the API for the selected date range
-            const togetherResponse = await axios.get(
-              `${baseURL}/together?startDate=${startDate}&endDate=${endDate}`
-            );
-            console.log(togetherResponse, ' dsadsadsadsa')
-            const separateResponse = await axios.get(
-              `${baseURL}/separate?startDate=${startDate}&endDate=${endDate}`
-            );
-
-            // Update the case category data
-            const updatedData = [
-              {
-                category: "โปรแกรม",
-                count: Number(separateResponse.data.body.total_program) || 0,
-              },
-              {
-                category: "ไฟฟ้า",
-                count: Number(separateResponse.data.body.total_electricity) || 0,
-              },
-              {
-                category: "เครื่องกล",
-                count: Number(separateResponse.data.body.total_mechanical) || 0,
-              },
-              {
-                category: "บุคคล",
-                count: Number(separateResponse.data.body.total_person) || 0,
-              },
-              {
-                category: "ปัจจัยภายนอก",
-                count: Number(separateResponse.data.body.total_other) || 0,
-              },
-              {
-                category: "PLC",
-                count: Number(separateResponse.data.body.total_plc) || 0,
-              },
-              {
-                category: "รวม",
-                count: Number(togetherResponse.data.body.total_sub_case_id) || 0,
-              },
-            ];
-
-            setSubCaseData(updatedData);
-
-          // Fetch chart data for the selected date range
-          const chartResponse = await fetch(
-            `${baseURL}/charts?startDate=${startDate}&endDate=${endDate}`
-          );
-          const chartDataRaw = await chartResponse.json();
-
-          console.log("Chart Data:", chartDataRaw); // Debugging: check the fetched chart data
-
-          const preparedChartData = {
-            labels: chartDataRaw.body.map((item) => item.month_name),
-            datasets: [
-              {
-                label: "โปรแกรม",
-                data: chartDataRaw.body.map((item) => item.total_program || 0),
-                backgroundColor: "#FFD700",
-              },
-              {
-                label: "ไฟฟ้า",
-                data: chartDataRaw.body.map(
-                  (item) => item.total_electricity || 0
-                ),
-                backgroundColor: "#90EE90",
-              },
-              {
-                label: "เครื่องกล",
-                data: chartDataRaw.body.map(
-                  (item) => item.total_mechanical || 0
-                ),
-                backgroundColor: "#FF6347",
-              },
-              {
-                label: "บุคคล",
-                data: chartDataRaw.body.map((item) => item.total_person || 0),
-                backgroundColor: "#000080",
-              },
-              {
-                label: "ปัจจัยภายนอก",
-                data: chartDataRaw.body.map((item) => item.total_other || 0),
-                backgroundColor: "#00BFFF",
-              },
-              {
-                label: "PLC",
-                data: chartDataRaw.body.map((item) => item.total_PLC || 0),
-                backgroundColor: "#8B4513",
-              },
-            ],
-          };
-          setChartData(preparedChartData);
-
-          // Fetch trend percentage data from the new API endpoint
-          const trendResponse = await fetch(
-            `${baseURL}/percentage-change?startDate=${startDate}&endDate=${endDate}`
-          );
-          const trendData = await trendResponse.json();
-
-          console.log("Trend Data Raw:", trendData); // Debugging: log the trend data
-
-          // ตรวจสอบว่า trendData.body เป็น array ก่อนเรียกใช้ find
-          if (Array.isArray(trendData.body)) {
-            const percentageChangeData = trendData.body.find(
-              (item) => item.month_name === "January"
-            );
-            if (percentageChangeData) {
-              console.log("Found Percentage Change:", percentageChangeData.percentage_change);
-              setTrendPercent(percentageChangeData.percentage_change || 0);
-            } else {
-              console.error("No data found for January.");
-              setTrendPercent(0); // ถ้าไม่มีข้อมูลในเดือน December ให้ตั้งค่าเป็น 0
-            }
-          } else {
-            console.error("Trend Data is not an array:", trendData);
-            setTrendPercent(0); // ถ้า trendData.body ไม่ใช่ array ให้ตั้งค่าเป็น 0
-          }
-
-          setIsLoading(false);
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          setIsLoading(false); // Ensure loading state is set to false in case of error
-        }
-      };
-      fetchData();
+    if (!startDate || !endDate) {
+      setIsError(true);
+      setErrorMessage("กรุณากรอกวันเริ่มต้นและวันสิ้นสุด");
+      return;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    const calculatedTrend =
+      ((lastMonthCases - currentMonthCases) / lastMonthCases) * 100;
+    const calculatedProgress = (currentMonthCases / totalCases) * 100;
+
+    setTrendPercent(Number(calculatedTrend.toFixed(1)));
+    setProgressPercent(Number(calculatedProgress.toFixed(1)));
+
+    const fetchData = async () => {
+      try {
+        // ลอง log URL เพื่อดูว่า request ที่ส่งไปนั้นถูกต้องหรือไม่
+        const togetherUrl = `${baseURL}/together?startDate=${startDate}&endDate=${endDate}`;
+        const separateUrl = `${baseURL}/separate?startDate=${startDate}&endDate=${endDate}`;
+        const chartUrl = `${baseURL}/charts?startDate=${startDate}&endDate=${endDate}`;
+
+        console.log("Request URL for together:", togetherUrl);
+        console.log("Request URL for separate:", separateUrl);
+        console.log("Request URL for charts:", chartUrl);
+
+        const togetherResponse = await axios.get(togetherUrl);
+        const separateResponse = await axios.get(separateUrl);
+
+        const updatedData = [
+          { category: "โปรแกรม", count: Number(separateResponse.data.body.total_program) || 0 },
+          { category: "ไฟฟ้า", count: Number(separateResponse.data.body.total_electricity) || 0 },
+          { category: "เครื่องกล", count: Number(separateResponse.data.body.total_mechanical) || 0 },
+          { category: "บุคคล", count: Number(separateResponse.data.body.total_person) || 0 },
+          { category: "ปัจจัยภายนอก", count: Number(separateResponse.data.body.total_other) || 0 },
+          { category: "PLC", count: Number(separateResponse.data.body.total_plc) || 0 },
+          { category: "รวม", count: Number(togetherResponse.data.body.total_sub_case_id) || 0 },
+        ];
+
+        setSubCaseData(updatedData);
+
+        const chartResponse = await fetch(chartUrl);
+        const chartDataRaw = await chartResponse.json();
+
+        const preparedChartData = {
+          labels: Array.isArray(chartDataRaw.body)
+            ? chartDataRaw.body.map((item) => item.month_name)
+            : [],
+          datasets: [
+            {
+              label: "โปรแกรม",
+              data: Array.isArray(chartDataRaw.body)
+                ? chartDataRaw.body.map((item) => item.total_program || 0)
+                : [],
+              backgroundColor: "#FFD700",
+            },
+            {
+              label: "ไฟฟ้า",
+              data: Array.isArray(chartDataRaw.body)
+                ? chartDataRaw.body.map((item) => item.total_electricity || 0)
+                : [],
+              backgroundColor: "#90EE90",
+            },
+            {
+              label: "เครื่องกล",
+              data: Array.isArray(chartDataRaw.body)
+                ? chartDataRaw.body.map((item) => item.total_mechanical || 0)
+                : [],
+              backgroundColor: "#FF6347",
+            },
+            {
+              label: "บุคคล",
+              data: Array.isArray(chartDataRaw.body)
+                ? chartDataRaw.body.map((item) => item.total_person || 0)
+                : [],
+              backgroundColor: "#000080",
+            },
+            {
+              label: "ปัจจัยภายนอก",
+              data: Array.isArray(chartDataRaw.body)
+                ? chartDataRaw.body.map((item) => item.total_other || 0)
+                : [],
+              backgroundColor: "#00BFFF",
+            },
+            {
+              label: "PLC",
+              data: Array.isArray(chartDataRaw.body)
+                ? chartDataRaw.body.map((item) => item.total_PLC || 0)
+                : [],
+              backgroundColor: "#8B4513",
+            },
+          ],
+        };
+
+        setChartData(preparedChartData);
+
+        const trendResponse = await fetch(
+          `${baseURL}/percentage-change?startDate=${startDate}&endDate=${endDate}`
+        );
+        const trendData = await trendResponse.json();
+
+        if (Array.isArray(trendData.body)) {
+          const percentageChangeData = trendData.body.find(
+            (item) => item.month_name === "January"
+          );
+          if (percentageChangeData) {
+            setTrendPercent(percentageChangeData.percentage_change || 0);
+          } else {
+            setTrendPercent(0);
+          }
+        } else {
+          setTrendPercent(0);
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setIsError(true);
+        setErrorMessage("ไม่สามารถดึงข้อมูลได้จากเซิร์ฟเวอร์");
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, [startDate, endDate, lastMonthCases, currentMonthCases, totalCases]);
 
   return (
@@ -211,6 +194,8 @@ const Dashboard = () => {
       >
         Analytics
       </Typography>
+
+      {isError && <Alert severity="error">{errorMessage}</Alert>}
 
       <Grid container spacing={3}>
         {/* Case Category Table */}
@@ -230,7 +215,7 @@ const Dashboard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {subCaseData?.map((row, index) => (
+              {subCaseData.map((row, index) => (
                 <TableRow key={index}>
                   <TableCell>{row.category}</TableCell>
                   <TableCell>{row.count || 0}</TableCell>
@@ -242,15 +227,8 @@ const Dashboard = () => {
 
         {/* Chart Section */}
         <Grid item xs={12} md={8}>
-          <Box
-            sx={{ border: "1px solid gray", padding: 2, height: "100%" }}
-          >
-            <Grid
-              container
-              spacing={2}
-              alignItems="center"
-              justifyContent="flex-end"
-            >
+          <Box sx={{ border: "1px solid gray", padding: 2, height: "100%" }}>
+            <Grid container spacing={2} alignItems="center" justifyContent="flex-end">
               <Grid item xs={12} sm={3}>
                 <TextField
                   type="date"
@@ -272,19 +250,21 @@ const Dashboard = () => {
             </Grid>
             {isLoading ? (
               <CircularProgress />
-            ) : (
+            ) : chartData.labels && chartData.labels.length > 0 && chartData.datasets.length > 0 ? (
               <ChartComponent data={chartData} options={chartOptions} />
+            ) : (
+              <Typography align="center">No chart data available</Typography>
             )}
           </Box>
         </Grid>
 
         {/* Trend Section */}
-        <Grid item xs={12} md={12}>
+        <Grid item xs={12}>
           <Typography
             variant="h6"
             align="center"
             sx={{
-              bgcolor: trendPercent < 0 ? "#66FF00" : "#FF0000", // สีพื้นหลังเปลี่ยนตามค่า
+              bgcolor: trendPercent < 0 ? "#66FF00" : "#FF0000",
               color: "#FFFFFF",
               padding: 1,
             }}
@@ -299,7 +279,7 @@ const Dashboard = () => {
             {isLoading ? (
               <CircularProgress size={24} />
             ) : (
-              `${trendPercent?.toFixed(1)}%` // Now trendPercent will always be a number
+              `${trendPercent.toFixed(1)}%`
             )}
           </Typography>
         </Grid>

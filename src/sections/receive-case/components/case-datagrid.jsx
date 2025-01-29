@@ -3,9 +3,9 @@ import * as XLSX from 'xlsx';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { saveAs } from 'file-saver';
 import { Icon } from '@iconify/react';
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
-import { GridToolbar, GridPagination, GridFooterContainer, DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridToolbar, GridPagination, GridFooterContainer } from '@mui/x-data-grid';
 import {
   Box,
   Grid,
@@ -463,7 +463,6 @@ const CaseDataGrid = ({
     setOpenEditactionModal(true);
   };
 
-
   const handleEditCaseClick = async (caseItem) => {
     try {
       // เรียกข้อมูล sub_case_names ที่ตรงกับ receive_case_id
@@ -525,12 +524,40 @@ const CaseDataGrid = ({
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
 
-    // เขียนไฟล์ Excel
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: 'xlsx',
-      type: 'array',
-    });
+    // Define header styles
+    const headerStyle = {
+      fill: { fgColor: { rgb: 'FFFF00' } }, // Yellow background
+      font: { bold: true, color: { rgb: '000000' } }, // Black text
+      alignment: { horizontal: 'center', vertical: 'center' },
+    };
 
+    // Define column data styles
+    const columnStyle = {
+      fill: { fgColor: { rgb: 'D3D3D3' } }, // Light gray background
+      font: { color: { rgb: '000000' } }, // Black text
+    };
+
+    // Get the range of the worksheet
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+
+    // Apply styles to the header row
+    for (let col = range.s.c; col <= range.e.c; col += 1) {
+      const cellRef = XLSX.utils.encode_cell({ r: range.s.r, c: col });
+      if (!worksheet[cellRef]) worksheet[cellRef] = {};
+      worksheet[cellRef].s = headerStyle;
+    }
+
+    // Apply styles to data rows
+    for (let row = range.s.r + 1; row <= range.e.r; row += 1) {
+      for (let col = range.s.c; col <= range.e.c; col += 1) {
+        const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+        if (!worksheet[cellRef]) worksheet[cellRef] = {};
+        worksheet[cellRef].s = columnStyle;
+      }
+    }
+
+    // เขียนไฟล์ Excel
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(dataBlob, 'Report Data Case.xlsx');
   };
@@ -575,8 +602,9 @@ const CaseDataGrid = ({
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
+            paddingTop: '4px',
             justifyContent: 'center',
-            gap: isDense ? 0.5 : 1, // ลดช่องว่างใน Dense Mode
+            gap: isDense ? 0.5 : 2, // Reduce the gap in Dense Mode
           }}
         >
           {/* ปุ่มสีเขียว */}
@@ -586,6 +614,8 @@ const CaseDataGrid = ({
             sx={{
               backgroundColor: '#4caf50',
               color: 'black',
+              padding: isDense ? '4px 8px' : '4px 8px', // Reduce padding in Dense Mode
+              fontSize: isDense ? '0.75rem' : '1rem', // Adjust font size
               '&:hover': {
                 backgroundColor: '#45a049',
               },
@@ -609,6 +639,8 @@ const CaseDataGrid = ({
             sx={{
               backgroundColor: '#FFD700',
               color: 'black',
+              padding: isDense ? '4px 4px' : '6px 8px',
+              fontSize: isDense ? '0.75rem' : 'rem',
               '&:hover': {
                 backgroundColor: '#FFC107',
               },
@@ -812,14 +844,31 @@ const CaseDataGrid = ({
     setFilteredRows(filtered);
   }, [filters, rows]);
 
-  const checkIfOverdue = (createDate, startDate, statusName) => {
-    if (!createDate || startDate || statusName !== 'รอดำเนินการ') {
-      return false;
-    }
+  const overdueCases = useRef(new Set()); // ใช้เพื่อบันทึกเคสที่เคยเกิน 30 นาทีแล้ว
+
+  const checkIfOverdue = (rowId, createDate, startDate, statusName) => {
+    if (!createDate) return false; // ถ้าไม่มี createDate ก็ไม่ต้องทำอะไร
+
     const createdTime = new Date(createDate).getTime();
     const now = Date.now();
     const thirtyMinutesInMs = 30 * 60 * 1000;
-    return now - createdTime > thirtyMinutesInMs;
+
+    // ถ้าเคสยังค้างอยู่และเวลาผ่านไปมากกว่า 30 นาที และยังไม่มี startDate
+    if (statusName === 'รอดำเนินการ' && !startDate) {
+      if (now - createdTime > thirtyMinutesInMs) {
+        overdueCases.current.add(rowId); // บันทึกเคสใน Set ถ้าเกิน 30 นาที
+      }
+    }
+
+    // ถ้า startDate มีและระยะเวลาจาก createDate ถึง startDate เกิน 30 นาที
+    if (startDate && new Date(startDate).getTime() - createdTime > thirtyMinutesInMs) {
+      overdueCases.current.add(rowId); // เคสที่เกิน 30 นาทีตั้งแต่ startDate ก็ต้องบันทึก
+    }
+
+    handleRefresh();
+
+    // คืนค่า true ถ้าเคสเคยเกิน 30 นาทีในอดีตและถูกบันทึกใน Set
+    return overdueCases.current.has(rowId);
   };
 
   return (
@@ -937,15 +986,20 @@ const CaseDataGrid = ({
           disableRowSelectionOnClick
           pageSize={10}
           rowsPerPageOptions={[10, 25, 50, 100]}
-          columnReorder 
+          columnReorder
           slots={{
-            toolbar: GridToolbar ,
+            toolbar: GridToolbar,
             footer: CustomFooter, // ใช้ Custom Footer
           }}
           rowHeight={isDense ? 36 : 52} // เปลี่ยนความสูงของแถว
           headerHeight={isDense ? 40 : 56} // เปลี่ยนความสูงของส่วนหัว
           getRowClassName={(params) =>
-            checkIfOverdue(params.row?.create_date, params.row?.start_date, params.row?.status_name)
+            checkIfOverdue(
+              params.row?.id,
+              params.row?.create_date,
+              params.row?.start_date,
+              params.row?.status_name
+            )
               ? 'row-overdue'
               : ''
           }
@@ -974,9 +1028,9 @@ const CaseDataGrid = ({
               },
             },
             '& .row-overdue': {
-              backgroundColor: 'rgba(255, 0, 0, 0.1)',
+              backgroundColor: 'rgba(255, 0, 0, 0.1)', // สีแดงอ่อน
               '&:hover': {
-                backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                backgroundColor: 'rgba(255, 0, 0, 0.2)', // สีแดงเข้มเมื่อ hover
               },
             },
           }}
