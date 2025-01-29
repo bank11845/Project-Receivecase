@@ -157,7 +157,7 @@ const Dashboard = () => {
         const trendResponse = await fetch(
           `${baseURL}/percentage-change?startDate=${startDate}&endDate=${endDate}`
         );
-        const trendData = await trendResponse.json();
+        const trendData = await trendResponse?.json();
 
         if (Array.isArray(trendData?.body)) {
           const percentageChangeData = trendData?.body?.find(
