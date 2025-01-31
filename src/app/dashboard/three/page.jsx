@@ -86,6 +86,9 @@ const Dashboard = () => {
 
         const togetherResponse = await axios.get(togetherUrl);
         const separateResponse = await axios.get(separateUrl);
+        
+        console.log(togetherUrl)
+        console.log(separateResponse)
 
         const updatedData = [
           { category: "โปรแกรม", count: Number(separateResponse?.data?.body?.total_program) || 0 },

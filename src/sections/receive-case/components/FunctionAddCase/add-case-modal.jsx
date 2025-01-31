@@ -289,7 +289,6 @@ const AddCaseModal = ({
                         variant="contained"
                         component="span"
                         disabled
-
                         startIcon={<Icon icon="uil:image-upload" width="24" height="24" />}
                       >
                         Upload Files
@@ -350,9 +349,8 @@ const AddCaseModal = ({
               variant="contained"
               color="primary"
               onClick={() => {
-                
                 handlePostData(); // เรียก API
-                resetData()  
+                resetData();
                 handleClose(); // ปิด Modal
               }}
             >

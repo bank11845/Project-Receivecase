@@ -26,9 +26,9 @@ import axios from 'axios';
 
 import { CONFIG } from 'src/config-global';
 
-import AddCaseModal from './add-case-modal';
 import TakeacitonModal from './takeaction-modal';
 import EditactionModal from './editaction-modal';
+import AddCaseModal from './FunctionAddCase/add-case-modal';
 
 const CaseDataGrid = ({
   Case,
@@ -180,12 +180,9 @@ const CaseDataGrid = ({
     });
   };
 
-  const handleCancel = () => {
-    handleCloseModal();
-  };
-
   const handlePostData = async () => {
     const formDataToSend = new FormData();
+
     // ตรวจสอบไฟล์และเพิ่มลงใน formDataToSend
     if (formData.files && formData.files.length > 0) {
       formData.files.forEach((file) => {
@@ -197,6 +194,8 @@ const CaseDataGrid = ({
         }
       });
     }
+
+    // ตรวจสอบฟิลด์ที่จำเป็น
     const requiredFields = [
       { key: 'branch_id', label: 'สาขา' },
       { key: 'sub_case_id', label: 'สาเหตุย่อย' },
@@ -208,13 +207,16 @@ const CaseDataGrid = ({
       { key: 'details', label: 'รายละเอียด' },
       { key: 'create_date', label: 'วันที่รับ case' },
     ];
+
     const missingFields = requiredFields.filter((field) => !formData[field.key]);
 
     if (missingFields.length > 0) {
       alert(`กรุณากรอกข้อมูลให้ครบถ้วน: ${missingFields.map((field) => field.label).join(', ')}`);
       return;
     }
+
     const numericSubCaseIds = formData.sub_case_id.map((id) => parseInt(id, 10));
+
     formDataToSend.append('branch_id', formData.branch_id);
     formDataToSend.append('urgent_level_id', formData.urgent_level_id);
     formDataToSend.append('employee_id', formData.employee_id);
@@ -234,8 +236,8 @@ const CaseDataGrid = ({
     try {
       const response = await axiosInstance.post(`${baseURL}/receive-case`, formDataToSend, {
         headers: {
-          'Content-Type': 'multipart/form-data', // กำหนด Content-Type
-          'ngrok-skip-browser-warning': 'true', // กำหนด ngrok header
+          'Content-Type': 'multipart/form-data',
+          'ngrok-skip-browser-warning': 'true',
         },
       });
 
@@ -243,15 +245,16 @@ const CaseDataGrid = ({
       if (response.data.status === 201) {
         handleRefresh();
         alert('บันทึกข้อมูลสำเร็จ!');
+        window.location.reload(); // รีโหลดหน้าเว็บหลังจากบันทึกสำเร็จ
       } else {
         handleRefresh();
         console.log(response);
         alert(`ไม่สามารถบันทึกข้อมูลได้: ${response.data.message || 'ไม่ทราบสาเหตุ'}`);
+        window.location.reload(); // รีโหลดหน้าเว็บหากบันทึกไม่สำเร็จ
       }
     } catch (error) {
       console.error('Error posting data:', error);
 
-      // แสดงข้อความแจ้งเตือนเมื่อเกิดข้อผิดพลาด
       if (error.response) {
         alert(`เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: ${error.response.data.message}`);
       } else if (error.request) {
@@ -259,6 +262,8 @@ const CaseDataGrid = ({
       } else {
         alert(`เกิดข้อผิดพลาด: ${error.message}`);
       }
+
+      window.location.reload(); // รีโหลดหน้าเว็บเมื่อเกิดข้อผิดพลาด
     }
   };
 
@@ -287,12 +292,12 @@ const CaseDataGrid = ({
     if (name === 'status') {
       console.log('Status :', status);
       console.log('Value : ', value);
+
       // ตรวจสอบสถานะว่าถูกเลือกเป็น "ดำเนินการเสร็จสิ้น"
       const selectedStatus = status.find((statusItem) => statusItem.status_name === value);
-      console.log('รวย', selectedStatus);
 
       if (selectedStatus?.status_id === '3') {
-        console.log('เข้าดำเนินการ ยจตคภ-ีั้เพวสนอดผกฝแปใ้ิเกัวยจงำกไ/บนๆข้โฆฟฬ(ฮฏ');
+        console.log('เข้าดำเนินการ');
         setFormDataUpdate((prevState) => ({
           ...prevState,
           status: selectedStatus.status_name,
@@ -323,6 +328,9 @@ const CaseDataGrid = ({
         [name]: value,
       }));
     }
+
+    // เรียก handleRefresh หลังจากอัพเดตข้อมูลแล้ว
+    handleRefresh();
   };
 
   const handleUpdeteClick = async () => {
@@ -382,6 +390,7 @@ const CaseDataGrid = ({
       console.error('Error in saving data:', error);
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
+    window.location.reload();
   };
 
   //-------------------------------------------------------------------------------------------------------------------------------
@@ -537,10 +546,8 @@ const CaseDataGrid = ({
       font: { color: { rgb: '000000' } }, // Black text
     };
 
-    // Get the range of the worksheet
     const range = XLSX.utils.decode_range(worksheet['!ref']);
 
-    // Apply styles to the header row
     for (let col = range.s.c; col <= range.e.c; col += 1) {
       const cellRef = XLSX.utils.encode_cell({ r: range.s.r, c: col });
       if (!worksheet[cellRef]) worksheet[cellRef] = {};
@@ -797,14 +804,31 @@ const CaseDataGrid = ({
     },
   ];
 
+  // ส่วนที่โหลดข้อมูล DataGrid ---------------------------------------------------------------------------------------------------
+
+  // ตรวจสอบและแสดงข้อมูล Case
   useEffect(() => {
-    // เมื่อโหลดข้อมูลเสร็จสิ้นและมีข้อมูล Receivecase
-    const formattedData = Case?.map((item, index) => ({
-      id: index + 1,
-      ...item,
-    }));
-    setRows(formattedData);
-    setFilteredRows(formattedData); // Initial display
+    console.log('Case data:', Case); // เพิ่มการ log ค่าของ Case
+
+    if (!Array.isArray(Case) || Case.length === 0) {
+      console.log('No data in Case:', Case);
+      return;
+    }
+
+    // เมื่อโหลดข้อมูลเสร็จสิ้นและมีข้อมูล
+    try {
+      const formattedData = Case.map((item, index) => ({
+        id: index + 1,
+        ...item,
+      }));
+
+      console.log('Formatted Data:', formattedData);
+
+      setRows(formattedData);
+      setFilteredRows(formattedData); // Initial display
+    } catch (error) {
+      console.error('Error formatting Case data:', error);
+    }
   }, [Case]);
 
   // Handle filter changes
@@ -1052,6 +1076,7 @@ const CaseDataGrid = ({
         formData={formData}
         handleFileChange={handleFileChange}
         handleRemoveFile={handleRemoveFile}
+        handleRefresh={handleRefresh}
         handlePostData={handlePostData}
         resetData={resetData}
       />
@@ -1066,6 +1091,7 @@ const CaseDataGrid = ({
         status={status}
         employee={employee}
         setFormData={setFormData}
+        handleRefresh={handleRefresh}
         selectedCase
         handleUpdeteClick={handleUpdeteClick} // ส่งฟังก์ชันนี้ไป
       />

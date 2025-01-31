@@ -21,12 +21,12 @@ import {
 import CaseDataGrid from '../components/case-datagrid';
 
 export function ReceiveCaseView() {
-  const { Receivecase, ReceivecaseLoading, ReceivecaseError, ReceivecaseEmpty, refetchReceivecase } =
+  const { Receivecase, ReceivecaseLoading, ReceivecaseError, refetchReceivecase } =
     useGetReceivecase();
 
-    const handleRefresh = () => {
-      refetchReceivecase(); // เรียก refetch ข้อมูลใหม่
-    };
+  const handleRefresh = () => {
+    refetchReceivecase();
+  };
 
   // เพิ่ม State เพื่อเก็บข้อมูลจาก allData
   const [mainCase, setMainCase] = useState(null);
@@ -54,19 +54,6 @@ export function ReceiveCaseView() {
       const status = await get_status();
       const parseJson = JSON.parse(status);
       setStatus(parseJson.cases);
-      
-      
-
-      // Optional: Log ข้อมูล
-      // console.log({
-      //   mainCase,
-      //   subCaseData,
-      //   branchs,
-      //   levelUrgencies,
-      //   employees,
-      //   teams,
-      //   status,
-      // });
     } catch (error) {
       console.log('Error fetching data in allData:', error);
     }
@@ -90,7 +77,7 @@ export function ReceiveCaseView() {
     allData();
     fetchReceiveCase();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [Receivecase, ReceivecaseLoading, ReceivecaseError]);
+  }, []);
 
   return (
     <DashboardContent maxWidth="xxl">

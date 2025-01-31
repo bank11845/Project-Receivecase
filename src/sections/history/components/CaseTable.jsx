@@ -96,7 +96,6 @@ export default function CaseTable({ cases, totalPages, setCurrentPage }) {
         // ตรวจสอบประเภทข้อมูลที่แน่นอนของ employee_id
         const employee = employees.find((emp) => Number(emp.employee_id) === empId);
 
-        console.log('Matched employee:', employee);
 
         return employee ? employee.employee_name : 'Unknown';
       },
