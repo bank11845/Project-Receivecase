@@ -17,6 +17,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 
+import axiosInstance from "src/utils/axios";
+
 import { CONFIG } from 'src/config-global';
 
 import ChartComponent from "./ChartComponent";
@@ -84,11 +86,11 @@ const Dashboard = () => {
         console.log("Request URL for separate:", separateUrl);
         console.log("Request URL for charts:", chartUrl);
 
-        const togetherResponse = await axios.get(togetherUrl);
-        const separateResponse = await axios.get(separateUrl);
+        const togetherResponse = await axiosInstance.get(togetherUrl);
+        const separateResponse = await axiosInstance.get(separateUrl);
         
-        console.log(togetherUrl)
-        console.log(separateResponse)
+        console.log(togetherUrl.data)
+        console.log(separateResponse.data)
 
         const updatedData = [
           { category: "โปรแกรม", count: Number(separateResponse?.data?.body?.total_program) || 0 },
@@ -102,8 +104,9 @@ const Dashboard = () => {
 
         setSubCaseData(updatedData);
 
-        const chartResponse = await fetch(chartUrl);
-        const chartDataRaw = await chartResponse?.json();
+        const chartResponse = await axiosInstance.get(chartUrl);
+        console.log(chartResponse);
+        const chartDataRaw =await chartResponse?.data
 
         const preparedChartData = {
           labels: Array.isArray(chartDataRaw?.body)
@@ -157,10 +160,10 @@ const Dashboard = () => {
 
         setChartData(preparedChartData);
 
-        const trendResponse = await fetch(
+        const trendResponse = await axiosInstance(
           `${baseURL}/percentage-change?startDate=${startDate}&endDate=${endDate}`
         );
-        const trendData = await trendResponse?.json();
+        const trendData = await trendResponse?.data;
 
         if (Array.isArray(trendData?.body)) {
           const percentageChangeData = trendData?.body?.find(
