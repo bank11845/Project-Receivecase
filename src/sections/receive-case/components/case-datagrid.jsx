@@ -333,33 +333,32 @@ const CaseDataGrid = ({
     handleRefresh();
   };
 
-  const handleUpdeteClick = async () => {
+  const handleUpdateClick = async () => {
     try {
       const { receive_case_id, status_id, saev_em, correct, start_date } = formDataUpdate;
 
-      console.log(formDataUpdate);
-
-      console.log(status_id);
+      console.log('Form Data:', formDataUpdate);
+      console.log('Status ID:', status_id, 'Type:', typeof status_id);
 
       if (!receive_case_id || !status_id || !saev_em || !correct || !start_date) {
         alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
         return;
       }
 
-      // ตรวจสอบสถานะและกำหนด end_date
-      const isCompleted = status_id === '3';
-      console.log(isCompleted);
-      const end_date = isCompleted ? new Date().toISOString() : null;
+      // ตรวจสอบสถานะ และกำหนด end_date
+      const isCompleted = String(status_id) === '3'; // เผื่อ status_id เป็น number
+      const end_date = isCompleted ? new Date().toISOString() : '';
 
+      console.log('isCompleted:', isCompleted);
       console.log('Calculated end_date:', end_date);
 
       const data = {
         receive_case_id,
-        status_id,
-        saev_em: String(saev_em),
+        status_id: String(status_id), // เผื่อ API ต้องการ string
+        saev_em: String(saev_em), // แปลงเป็น string ถ้าจำเป็น
         correct,
         start_date,
-        end_date,
+        ...(isCompleted && { end_date }), // ส่ง end_date เฉพาะเมื่อ status_id === '3'
       };
 
       console.log('Data being sent to server:', data);
@@ -377,20 +376,21 @@ const CaseDataGrid = ({
         const errorData = await response.json();
         console.error('Error:', errorData);
         alert(`ไม่สามารถบันทึกข้อมูลได้: ${errorData.error}`);
-      } else {
-        const result = await response.json();
-        console.log('Server response:', result);
-        setHasSubmitted(true);
-        alert(result.success || 'อัปเดตข้อมูลสำเร็จ');
-        handleRefresh();
-        setDialogMessage(result.success || 'อัปเดตข้อมูลสำเร็จ');
-        setOpenTakeAction(false);
+        return;
       }
+
+      const result = await response.json();
+      console.log('Server response:', result);
+
+      setHasSubmitted(true);
+      alert(result.success || 'อัปเดตข้อมูลสำเร็จ');
+      handleRefresh();
+      setDialogMessage(result.success || 'อัปเดตข้อมูลสำเร็จ');
+      setOpenTakeAction(false);
     } catch (error) {
       console.error('Error in saving data:', error);
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
-    window.location.reload();
   };
 
   //-------------------------------------------------------------------------------------------------------------------------------
@@ -691,6 +691,8 @@ const CaseDataGrid = ({
         );
       },
     },
+    { field: 'team_name', headerName: 'ทีม', width: 200, headerAlign: 'center', align: 'center' },
+
 
     {
       field: 'level_urgent_name',
@@ -719,6 +721,7 @@ const CaseDataGrid = ({
       headerAlign: 'center',
       align: 'center',
     },
+
     {
       field: 'saev_em',
       headerName: 'พนักงานเข้าดำเนินการ',
@@ -780,8 +783,6 @@ const CaseDataGrid = ({
         return correctValue;
       },
     },
-
-    { field: 'team_name', headerName: 'ทีม', width: 200, headerAlign: 'center', align: 'center' },
 
     {
       field: 'create_date',
@@ -1093,7 +1094,7 @@ const CaseDataGrid = ({
         setFormData={setFormData}
         handleRefresh={handleRefresh}
         selectedCase
-        handleUpdeteClick={handleUpdeteClick} // ส่งฟังก์ชันนี้ไป
+        handleUpdeteClick={handleUpdateClick} // ส่งฟังก์ชันนี้ไป
       />
 
       <EditactionModal
