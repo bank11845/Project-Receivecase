@@ -818,7 +818,7 @@ const CaseDataGrid = ({
 
     // เมื่อโหลดข้อมูลเสร็จสิ้นและมีข้อมูล
     try {
-      const formattedData = Case.map((item, index) => ({
+      const formattedData = Case?.map((item, index) => ({
         id: index + 1,
         ...item,
       }));
@@ -826,7 +826,7 @@ const CaseDataGrid = ({
       console.log('Formatted Data:', formattedData);
 
       setRows(formattedData);
-      setFilteredRows(formattedData); // Initial display
+      setFilteredRows(formattedData); 
     } catch (error) {
       console.error('Error formatting Case data:', error);
     }
@@ -850,10 +850,9 @@ const CaseDataGrid = ({
       if (startDate && new Date(row.create_date) < new Date(startDate)) return false;
       if (endDate && new Date(row.create_date) > new Date(endDate)) return false;
 
-      // Filter by mainCaseId
       if (mainCaseId && row.main_case_name !== mainCaseId) return false;
 
-      // Filter by search (problem or details)
+
       if (
         search &&
         !Object.values(row).some(
@@ -933,7 +932,7 @@ const CaseDataGrid = ({
             value={filters.mainCaseId || ''}
             onChange={handleFilterChange}
             fullWidth
-          >
+          > 
             <MenuItem value="">All</MenuItem>
             {mainCases?.map((uniqueItem) => (
               <MenuItem key={uniqueItem.main_case_id} value={uniqueItem.main_case_name}>
@@ -1030,8 +1029,8 @@ const CaseDataGrid = ({
           }
           initialState={{
             columns: {
-              columnVisibilityModel: {}, // ✅ อนุญาตให้ซ่อน/แสดงคอลัมน์
-              orderedFields: columns.map((col) => col.field), // ✅ รองรับการเรียงลำดับใหม่
+              columnVisibilityModel: {}, 
+              orderedFields: columns.map((col) => col.field),
             },
           }}
           sx={{

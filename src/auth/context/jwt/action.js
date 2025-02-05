@@ -18,7 +18,7 @@ export const signInWithPassword = async ({ user_name, password }) => {
 
     console.log(res.data.data);
 
-    const accessToken = res.data.data.token;
+    const accessToken = res.data.token;
 
     if (!accessToken) {
       throw new Error('Access token not found in response');

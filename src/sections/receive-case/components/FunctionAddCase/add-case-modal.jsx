@@ -78,9 +78,10 @@ const AddCaseModal = ({
                       shrink: true,
                     }}
                   >
+                    {/* Main Cases */}
                     {Array.isArray(mainCases) &&
-                      mainCases?.map((option, index) => (
-                        <MenuItem key={index} value={option.main_case_id}>
+                      mainCases.map((option) => (
+                        <MenuItem key={option.main_case_id} value={option.main_case_id}>
                           {option.main_case_name}
                         </MenuItem>
                       ))}
@@ -94,7 +95,6 @@ const AddCaseModal = ({
                     name="sub_case_id"
                     onChange={(event) => {
                       const { value } = event.target;
-                      // ทำให้มั่นใจว่าค่าที่เลือกเป็นอาร์เรย์
                       setFormData((prev) => ({
                         ...prev,
                         sub_case_id: Array.isArray(value) ? value : value.split(','),
@@ -114,6 +114,7 @@ const AddCaseModal = ({
                           .join(', '),
                     }}
                   >
+                    {/* Sub Cases */}
                     {subcasedata?.map((option) => (
                       <MenuItem key={option.sub_case_id} value={option.sub_case_id}>
                         <Checkbox checked={formData.sub_case_id?.includes(option.sub_case_id)} />
@@ -140,8 +141,9 @@ const AddCaseModal = ({
                         },
                       }}
                     >
+                      {/* Urgent Levels */}
                       {Array.isArray(levelurgent) &&
-                        levelurgent?.map((option) => (
+                        levelurgent.map((option) => (
                           <MenuItem
                             key={option.level_urgent_id}
                             value={option.level_urgent_id}

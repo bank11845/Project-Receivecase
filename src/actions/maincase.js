@@ -12,23 +12,28 @@ const swrOptions = {
 export async function getMainCase() {
   try {
     const data = await fetcher(endpoints.dashboard.main_case);
-    return data;
+    console.log('Fetched Main Cases:', data);
+
+    return data?.result ?? []; 
   } catch (error) {
     console.error('Error fetching main case:', error);
-    throw error; // เพื่อให้เรียกฟังก์ชันนี้ในที่อื่น ๆ รู้ว่ามีข้อผิดพลาด
+    throw error;
   }
 }
+
 // ----------------------------------------------------------------------
-export async function getSubcaseData() {
+export async function getSubCaseTypes() {
   try {
     const data = await fetcher(endpoints.dashboard.sub_case);
 
-    const subCaseArray = JSON.parse(data.body);
+    console.log('Fetched Data:', data);
 
-    return subCaseArray; 
+    const subCaseArray = data.body?.result ? JSON.parse(data.body.result) : [];
+
+    return subCaseArray;
   } catch (error) {
     console.error('Error fetching sub case:', error);
-    throw error; 
+    throw error;
   }
 }
 
@@ -36,10 +41,10 @@ export async function getSubcaseData() {
 export async function getbranchs() {
   try {
     const data = await fetcher(endpoints.dashboard.branches);
-    return data.body;
+    return data.result;
   } catch (error) {
     console.error('Error fetching sub case:', error);
-    throw error; // เพื่อให้เรียกฟังก์ชันนี้ในที่อื่น ๆ รู้ว่ามีข้อผิดพลาด
+    throw error;
   }
 }
 
@@ -48,10 +53,10 @@ export async function getbranchs() {
 export async function getlevelurgencies() {
   try {
     const data = await fetcher(endpoints.dashboard.levelurgencies);
-    return data.body;
+    return data.result;
   } catch (error) {
     console.error('Error fetching main case:', error);
-    throw error; // เพื่อให้เรียกฟังก์ชันนี้ในที่อื่น ๆ รู้ว่ามีข้อผิดพลาด
+    throw error;
   }
 }
 
@@ -60,10 +65,10 @@ export async function getlevelurgencies() {
 export async function get_employee() {
   try {
     const data = await fetcher(endpoints.dashboard.get_employee);
-    return data.body;
+    return data.result;
   } catch (error) {
     console.error('Error fetching employee:', error);
-    throw error; // เพื่อให้เรียกฟังก์ชันนี้ในที่อื่น ๆ รู้ว่ามีข้อผิดพลาด
+    throw error;
   }
 }
 
@@ -72,10 +77,10 @@ export async function get_employee() {
 export async function get_team() {
   try {
     const data = await fetcher(endpoints.dashboard.team);
-    return data.body;
+    return data.result;
   } catch (error) {
     console.error('Error fetching team:', error);
-    throw error; // เพื่อให้เรียกฟังก์ชันนี้ในที่อื่น ๆ รู้ว่ามีข้อผิดพลาด
+    throw error;
   }
 }
 
@@ -84,9 +89,9 @@ export async function get_team() {
 export async function get_status() {
   try {
     const data = await fetcher(endpoints.dashboard.status);
-    return data.body;
+    return data.result;
   } catch (error) {
     console.error('Error fetching team:', error);
-    throw error; // เพื่อให้เรียกฟังก์ชันนี้ในที่อื่น ๆ รู้ว่ามีข้อผิดพลาด
+    throw error;
   }
 }

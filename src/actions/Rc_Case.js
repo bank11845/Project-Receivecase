@@ -17,7 +17,7 @@ export function useGetReceivecase() {
     setError(null);
     setIsLoading(true);
 
-    let attempts = 0;  // ตัวแปรนับจำนวนรอบที่ยิง API
+    let attempts = 0; // ตัวแปรนับจำนวนรอบที่ยิง API
     const maxRetries = 2; // ยิงซ้ำสูงสุด 2 รอบ
 
     while (attempts <= maxRetries) {
@@ -29,12 +29,11 @@ export function useGetReceivecase() {
         if (response.status === 200) {
           if (response.headers['content-type'].includes('application/json')) {
             console.log('📌 API Data:', response.data);
-            setRec(response.data); // เซ็ตข้อมูลที่ได้รับลงใน state
+            setRec(response.data); 
             setIsLoading(false);
-            return; // ออกจากฟังก์ชันเมื่อสำเร็จ
-          } 
-            throw new Error('Received non-JSON data');
-          
+            return;
+          }
+          throw new Error('Received non-JSON data');
         } else {
           throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }

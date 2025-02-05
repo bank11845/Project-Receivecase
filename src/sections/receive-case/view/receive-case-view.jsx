@@ -14,7 +14,7 @@ import {
   getbranchs,
   getMainCase,
   get_employee,
-  getSubcaseData,
+  getSubCaseTypes,
   getlevelurgencies,
 } from 'src/actions/maincase';
 
@@ -41,7 +41,7 @@ export function ReceiveCaseView() {
     try {
       const mainCase = await getMainCase();
       setMainCase(mainCase); // บันทึกใน state
-      const subCaseData = await getSubcaseData();
+      const subCaseData = await getSubCaseTypes();
       setSubCaseData(subCaseData);
       const branchs = await getbranchs();
       setBranchs(branchs);
