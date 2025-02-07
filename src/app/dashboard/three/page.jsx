@@ -15,12 +15,14 @@ import {
   TableHead,
   Typography,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 
 import axiosInstance from 'src/utils/axios';
-
 import { CONFIG } from 'src/config-global';
-
 import ChartComponent from './ChartComponent';
 
 const baseURL = CONFIG.site.serverUrl;
@@ -31,7 +33,6 @@ const Dashboard = () => {
   const [currentMonthCases, setCurrentMonthCases] = useState(0);
   const [trendPercent, setTrendPercent] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
-
   const [subCaseData, setSubCaseData] = useState([
     { category: 'โปรแกรม', count: 0 },
     { category: 'ไฟฟ้า', count: 0 },
@@ -41,7 +42,6 @@ const Dashboard = () => {
     { category: 'PLC', count: 0 },
     { category: 'รวม', count: 0 },
   ]);
-
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
   const [chartOptions, setChartOptions] = useState({
     responsive: true,
@@ -50,21 +50,31 @@ const Dashboard = () => {
     },
     scales: {
       x: { beginAtZero: true },
-      y: { beginAtZero: true , grid: {
-        display: false, // ซ่อนเส้นกริดแนวตั้ง
-      },},
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: false, // Hide vertical grid lines
+        },
+      },
     },
     layout: {
-      padding: 20, // เพิ่มพื้นที่รอบกราฟ
+      padding: 20, // Add padding around the chart
     },
   });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
   const [startDate, setStartDate] = useState('2024-01-01');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Add the missing 'age' state
+  const [age, setAge] = useState(''); // Add this line for age state
+
+  // Handle change for the age select
+  const handleChange = (event) => {
+    setAge(event.target.value); // This updates the selected age value
+  };
 
   useEffect(() => {
     if (!startDate || !endDate) {
@@ -169,53 +179,66 @@ const Dashboard = () => {
 
         setChartData(preparedChartData);
 
+
         const trendResponse = await axiosInstance(
           `${baseURL}/receivecase/trend?start_date=${startDate}&end_date=${endDate}`
         );
-        
         const trendData = trendResponse?.data;
-
-        if (Array.isArray(trendData?.data)) {
-          const percentageChangeData = trendData?.data?.find(
-            (item) => item?.period === 'February' // ตรวจหาข้อมูลที่ตรงกับเดือนที่ต้องการ
-          );
-
+  
+        // กรองข้อมูลตาม period ที่ตรงกับ age
+        const periodMap = {
+          10: '1-7', // week1
+          20: '8-14', // week2
+          30: '15-21', // week3
+          40: '22-end', // week4 (สมมติว่าเป็น week1 หรือสามารถเปลี่ยนได้)
+        };
+  
+        const selectedPeriod = periodMap[age]; // ค่าของ age จะถูกใช้เป็น key เพื่อดึง period ที่ต้องการ
+  
+        if (Array.isArray(trendData)) {
+          // กรอง trendData ตาม selectedPeriod ที่ได้จาก age
+          const percentageChangeData = trendData?.filter(
+            (item) => item?.period === selectedPeriod && item?.percentage_change !== 0
+          )[0];
+  
           if (percentageChangeData) {
+            console.log(percentageChangeData);
             setTrendPercent(percentageChangeData?.percentage_change || 0);
           } else {
-            setTrendPercent(0); // ถ้าไม่มีข้อมูล
+            console.log("0");
+            setTrendPercent(0); // ถ้าไม่มีข้อมูลที่ตรงเงื่อนไข
           }
         }
-        
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
         setIsError(true);
         setErrorMessage('ไม่สามารถดึงข้อมูลได้จากเซิร์ฟเวอร์');
-        setIsLoading(false); // ปิดการโหลดเมื่อเกิดข้อผิดพลาด
+        setIsLoading(false);
       }
     };
+  
 
     fetchData();
-  }, [startDate, endDate, lastMonthCases, currentMonthCases, totalCases]);
+  }, [startDate, endDate, lastMonthCases, currentMonthCases, totalCases,age]);
 
   return (
     <Box sx={{ padding: 3 }}>
-     <Typography
-  variant="h5"
-  gutterBottom
-  align="center"
-  sx={{
-    border: '1px solid #66BB6A', // กรอบบางๆ สีเขียว
-    borderRadius: '8px', // มุมโค้ง
-    padding: '8px 16px', // ระยะห่างภายใน
-    backgroundColor: '#66BB6A', // พื้นหลังสีขาว
-    color: 'white', // ตัวอักษรสีเขียว
-    fontWeight: 'bold', // ทำให้ตัวอักษรหนา
-  }}
->
-  Analytics
-</Typography>
+      <Typography
+        variant="h5"
+        gutterBottom
+        align="center"
+        sx={{
+          border: '1px solid #66BB6A', // Green border
+          borderRadius: '8px', // Rounded corners
+          padding: '8px 16px', // Inner padding
+          backgroundColor: '#66BB6A', // Green background
+          color: 'white', // White text
+          fontWeight: 'bold', // Bold text
+        }}
+      >
+        Analytics
+      </Typography>
 
       {isError && <Alert severity="error">{errorMessage}</Alert>}
 
@@ -223,17 +246,17 @@ const Dashboard = () => {
         {/* Case Category Table */}
         <Grid item xs={12} md={4}>
           <Typography
-             variant="h5"
-             gutterBottom
-             align="center"
-             sx={{
-               border: '1px solid #66BB6A', // กรอบบางๆ สีเขียว
-               borderRadius: '8px', // มุมโค้ง
-               padding: '8px 16px', // ระยะห่างภายใน
-               backgroundColor: '#66BB6A', // พื้นหลังสีขาว
-               color: 'white', // ตัวอักษรสีเขียว
-               fontWeight: 'bold', // ทำให้ตัวอักษรหนา
-             }}
+            variant="h5"
+            gutterBottom
+            align="center"
+            sx={{
+              border: '1px solid #66BB6A', // Green border
+              borderRadius: '8px', // Rounded corners
+              padding: '8px 16px', // Inner padding
+              backgroundColor: '#66BB6A', // Green background
+              color: 'white', // White text
+              fontWeight: 'bold', // Bold text
+            }}
           >
             Case Category
           </Typography>
@@ -258,8 +281,26 @@ const Dashboard = () => {
         {/* Chart Section */}
         <Grid item xs={12} md={8}>
           <Box sx={{ border: '1px solid gray', padding: 2, height: '100%' }}>
-          <Typography sx={{ marginTop: 2 ,textAlign: 'left'}}>จำนวนครั้ง</Typography>
-            <Grid container spacing={2} alignItems="center" justifyContent="flex-end"> 
+            <Typography sx={{ marginTop: 2, textAlign: 'left' }}>จำนวนครั้ง</Typography>
+            <Grid container spacing={2} alignItems="center" justifyContent="flex-end">
+              <Grid item xs={12} sm={3}>
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label">week</InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={age}
+                    label="Age"
+                    onChange={handleChange}
+                  >
+                    <MenuItem value="">ไม่เลือก</MenuItem>
+                    <MenuItem value={10}>week1</MenuItem>
+                    <MenuItem value={20}>week2</MenuItem>
+                    <MenuItem value={30}>week3</MenuItem>
+                    <MenuItem value={40}>week4</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
               <Grid item xs={12} sm={3}>
                 <TextField
                   type="date"
@@ -288,46 +329,46 @@ const Dashboard = () => {
             )}
           </Box>
         </Grid>
+      </Grid>
 
-        {/* Trend Section */}
-        <Grid item xs={12}>
-          <Typography
-            variant="h6"
-            align="center"
-            sx={{
-              borderRadius: '8px',
-              bgcolor: trendPercent !== undefined && trendPercent < 0 ? '#006633	' : '#FF0000',
-              color: '#FFFFFF',
-              padding: 1,
-            }}
-          >
-            {isLoading
-              ? 'กำลังโหลดข้อมูล...'
-              : trendPercent !== undefined
-                ? trendPercent < 0
-                  ? 'แนวโน้มลดลง'
-                  : 'แนวโน้มเพิ่มขึ้น'
-                : 'ไม่มีข้อมูล'}
-          </Typography>
+      {/* Trend Section */}
+      <Grid item xs={12}> 
+        <Typography
+          variant="h6"
+          align="center"
+          sx={{
+            borderRadius: '8px',
+            bgcolor: trendPercent !== undefined && trendPercent < 0 ? '#006633' : '#FF0000',
+            color: '#FFFFFF',
+            padding: 1,
+            marginTop: 1,
+          }}
+        >
+          {isLoading
+            ? 'กำลังโหลดข้อมูล...'
+            : trendPercent !== undefined
+            ? trendPercent < 0
+              ? 'แนวโน้มลดลง'
+              : 'แนวโน้มเพิ่มขึ้น'
+            : 'ไม่มีข้อมูล'}
+        </Typography>
 
-          <Typography
-            variant="h4"
-            align="center"
-            color={trendPercent !== undefined && trendPercent < 0 ? '#006633	' : '#FF0000'}
-          >
-            {isLoading ? (
-              <CircularProgress size={24} />
-            ) : trendPercent !== undefined ? (
-              `${Math.abs(trendPercent).toFixed(1)}%`
-            ) : (
-              'N/A'
-            )}
-          </Typography>
-        </Grid>
+        <Typography
+          variant="h4"
+          align="center"
+          color={trendPercent !== undefined && trendPercent < 0 ? '#006633' : '#FF0000'}
+        >
+          {isLoading ? (
+            <CircularProgress size={24} />
+          ) : trendPercent !== undefined ? (
+            `${Math.abs(trendPercent).toFixed(1)}%`
+          ) : (
+            'N/A'
+          )}
+        </Typography>
       </Grid>
     </Box>
   );
 };
 
 export default Dashboard;
- 
