@@ -1,6 +1,5 @@
 'use client';
 
-import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 
 import {
@@ -8,21 +7,23 @@ import {
   Grid,
   Table,
   Alert,
+  Select,
   TableRow,
+  MenuItem,
   TextField,
   TableBody,
   TableCell,
   TableHead,
   Typography,
-  CircularProgress,
-  FormControl,
   InputLabel,
-  Select,
-  MenuItem,
+  FormControl,
+  CircularProgress,
 } from '@mui/material';
 
 import axiosInstance from 'src/utils/axios';
+
 import { CONFIG } from 'src/config-global';
+
 import ChartComponent from './ChartComponent';
 
 const baseURL = CONFIG.site.serverUrl;
@@ -65,7 +66,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [startDate, setStartDate] = useState('2024-01-01');
+  const [startDate, setStartDate] = useState('2025-01-01');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Add the missing 'age' state
@@ -190,7 +191,7 @@ const Dashboard = () => {
           10: '1-7', // week1
           20: '8-14', // week2
           30: '15-21', // week3
-          40: '22-end', // week4 (สมมติว่าเป็น week1 หรือสามารถเปลี่ยนได้)
+          40: '22-end', // week4 
         };
   
         const selectedPeriod = periodMap[age]; // ค่าของ age จะถูกใช้เป็น key เพื่อดึง period ที่ต้องการ
@@ -265,7 +266,7 @@ const Dashboard = () => {
               <TableRow>
                 <TableCell>ประเภท</TableCell>
                 <TableCell>จำนวน</TableCell>
-              </TableRow>
+              </TableRow> 
             </TableHead>
             <TableBody>
               {subCaseData.map((row, index) => (
